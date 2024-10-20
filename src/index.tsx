@@ -41,7 +41,8 @@ var result = calculateSplit(
 		cashBackPercentageToSplit: new Fraction(0.03)
 	},
 	{
-		tipRoundingStrategy: "roundNearestCent"
+		tipRoundingStrategy: "roundNearestCent",
+		contributionRoundingStrategy: "roundNearestCent"
 	});
 	
 	for (var contribution of result.Contributions) {

@@ -1,6 +1,6 @@
 
 import { unwrap } from '@kanwren/minewt';
-import { Money, zeroDollars, addMoney, scaleMoney, MoneyRoundingStrategy, subtractMoney, sumMoney } from './money'; // Adjust the import path as necessary
+import { Money, zeroDollars, addMoney, scaleMoney, MoneyRoundingStrategy, subtractMoney, sumMoney, roundToCents } from './money'; // Adjust the import path as necessary
 import Fraction from 'fraction.js';
 import { calculateTip, TipPercentageOption } from './tip';
 
@@ -36,7 +36,8 @@ export type CheckInput = {
 }
 
 export type Options = {
-    tipRoundingStrategy: MoneyRoundingStrategy
+    tipRoundingStrategy: MoneyRoundingStrategy,
+    contributionRoundingStrategy: MoneyRoundingStrategy
 }
 
 type ContributionResult = {
@@ -89,15 +90,16 @@ function computeIndividualShareFractions(ownedItemGroups: OwnedItemGroupPrice[],
     return getShareFractions(ownedItemGroups.concat(splitSharedItemGroupCosts(sharedItemGroups)));
 }
 
-function computeIndividualShares(totalToSplit: Money, shareFractions: Map<string, Fraction>, nameOrder: string[]): ContributionResult[] {
+function computeIndividualShares(totalToSplit: Money, shareFractions: Map<string, Fraction>, nameOrder: string[], contributionRoundingStrategy: MoneyRoundingStrategy): ContributionResult[] {
     var individualShares: ContributionResult[] = [];
 
     for (var owner of nameOrder) {
+        var unroundedContribution = scaleMoney(totalToSplit, shareFractions.get(owner) ?? new Fraction(0));
+        var roundedContribution = roundToCents(unroundedContribution, contributionRoundingStrategy);
 
-        // TODO round to integer number of cents based on rounding strategy
         individualShares.push({
             owner: owner,
-            contribution: scaleMoney(totalToSplit, shareFractions.get(owner) ?? new Fraction(0))
+            contribution: roundedContribution
         });
     }
 
@@ -137,7 +139,7 @@ export function calculateSplit(check: CheckInput, options: Options): ComputeResu
         var namesInOrder = check.ownedItemGroups.map(itemGroup => itemGroup.owner);
 
         return {
-            Contributions: computeIndividualShares(totalToSplit, individualShareFractions, namesInOrder),
+            Contributions: computeIndividualShares(totalToSplit, individualShareFractions, namesInOrder, options.contributionRoundingStrategy),
             UnsplitTip: extraUnsplitTip
         }
     }
