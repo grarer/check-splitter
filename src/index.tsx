@@ -2,6 +2,7 @@ import { hydrate, prerender as ssr } from 'preact-iso';
 
 import preactLogo from './assets/preact.svg';
 import './style.css';
+import { VNode } from 'preact';
 
 export function App() {
 	return (
@@ -31,7 +32,7 @@ export function App() {
 	);
 }
 
-function Resource(props) {
+function Resource(props: { title: string; description: string; href: string }) {
 	return (
 		<a href={props.href} target="_blank" class="resource">
 			<h2>{props.title}</h2>
@@ -41,9 +42,9 @@ function Resource(props) {
 }
 
 if (typeof window !== 'undefined') {
-	hydrate(<App />, document.getElementById('app'));
+	hydrate(<App />, document.getElementById('app')!);
 }
 
-export async function prerender(data) {
+export async function prerender(data: VNode) {
 	return await ssr(<App {...data} />);
 }
