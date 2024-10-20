@@ -3,8 +3,52 @@ import { hydrate, prerender as ssr } from 'preact-iso';
 import preactLogo from './assets/preact.svg';
 import './style.css';
 import { VNode } from 'preact';
+import { calculateSplit } from './model/split';
+import { suggestedTipPercentages } from './model/tip';
+import Fraction from 'fraction.js';
+import { Money } from './model/money';
+import { unwrap } from '@kanwren/minewt';
 
+var result = calculateSplit(
+	{
+		ownedItemGroups: [
+			{
+				owner: "Grace",
+				prices: [
+					Money(new Fraction("3.99")),
+					Money(new Fraction("13.99"))]
+			},
+			{
+				owner: "Diana",
+				prices: [
+					Money(new Fraction("3.99")),
+					Money(new Fraction("6.49")),
+					Money(new Fraction("0.79")),
+					Money(new Fraction("1.99"))]
+			},
+			{
+				owner: "Ashley",
+				prices: [
+					Money(new Fraction("3.99")),
+					Money(new Fraction("13.99"))],
+			},
+			
+		],
+		sharedItemGroups: [],
+		tipPercentageToPay: suggestedTipPercentages[0],
+		tipPercentageToSplit: suggestedTipPercentages[0],
+		postTaxPreTip: Money(new Fraction(57.10)),
+		cashBackPercentageToSplit: new Fraction(0.03)
+	},
+	{
+		tipRoundingStrategy: "roundNearestCent"
+	});
+	
+	for (var contribution of result.Contributions) {
+		console.log(`${contribution.owner} owes ${unwrap(contribution.contribution).toString()}`);
+	}
 
+console.log(result);
 
 export function App() {
 	return (

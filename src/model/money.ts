@@ -4,12 +4,12 @@ import { impossible } from "../util";
 
 
 export type Money = Newtype<Fraction, { readonly _: unique symbol; }>;
-export const FractionalMoney = newtype<Money>();
+export const Money = newtype<Money>();
 
-export const zeroDollars = FractionalMoney(new Fraction(0));
+export const zeroDollars = Money(new Fraction(0));
 
 export function scaleMoney(price: Money, coefficient: Fraction): Money {
-    return FractionalMoney(unwrap(price).mul(coefficient));
+    return Money(unwrap(price).mul(coefficient));
 }
 
 export const addMoney = liftN2<Money>((a,b) => a.add(b));

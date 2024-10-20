@@ -14,16 +14,29 @@ export type SharedItemGroup = {
     price: Money
 }
 
-export type ItemGroupPrice = {
+type ItemGroupPrice = {
     groupPrice: Money
 }
 
-export type OwnedItemGroupPrice = ItemGroupPrice & {
+type OwnedItemGroupPrice = ItemGroupPrice & {
     owner: string,
 }
 
-export type SharedItemGroupPrice = ItemGroupPrice & {
+type SharedItemGroupPrice = ItemGroupPrice & {
     owners: string[],
+}
+
+export type CheckInput = {
+    ownedItemGroups: OwnedItemGroup[],
+    sharedItemGroups: SharedItemGroup[],
+    postTaxPreTip: Money,
+    tipPercentageToPay: TipPercentageOption,
+    tipPercentageToSplit: TipPercentageOption,
+    cashBackPercentageToSplit: Fraction,
+}
+
+export type Options = {
+    tipRoundingStrategy: MoneyRoundingStrategy
 }
 
 type ContributionResult = {
@@ -76,11 +89,12 @@ function computeIndividualShareFractions(ownedItemGroups: OwnedItemGroupPrice[],
     return getShareFractions(ownedItemGroups.concat(splitSharedItemGroupCosts(sharedItemGroups)));
 }
 
-// TODO can we make this return in the order of the user input?
 function computeIndividualShares(totalToSplit: Money, shareFractions: Map<string, Fraction>, nameOrder: string[]): ContributionResult[] {
     var individualShares: ContributionResult[] = [];
 
     for (var owner of nameOrder) {
+
+        // TODO round to integer number of cents based on rounding strategy
         individualShares.push({
             owner: owner,
             contribution: scaleMoney(totalToSplit, shareFractions.get(owner) ?? new Fraction(0))
@@ -90,23 +104,17 @@ function computeIndividualShares(totalToSplit: Money, shareFractions: Map<string
     return individualShares;    
 }
 
-export function calculateSplit(
-    ownedItemGroups: OwnedItemGroup[],
-    sharedItemGroups: SharedItemGroup[],
-    postTaxPreTip: Money,
-    tipPercentageToPay: TipPercentageOption,
-    tipPercentageToSplit: TipPercentageOption,
-    cashBackPercentageToSplit: Fraction,
-    tipRoundingStrategy: MoneyRoundingStrategy
-    ): ComputeResult {
+export function calculateSplit(check: CheckInput, options: Options): ComputeResult {
         // TODO throw if the split tip percentage is greater than the tip percentage to pay
+        // TODO throw if the sum is 0 (i.e. if there are no nonzero amounts in the item groups)
 
-        var ownedItemGroupPrices = ownedItemGroups.map(itemGroup => ({
+
+        var ownedItemGroupPrices = check.ownedItemGroups.map(itemGroup => ({
             owner: itemGroup.owner,
             groupPrice: sumMoney(itemGroup.prices)
         }));
 
-        var sharedItemGroupPrices = sharedItemGroups.map(itemGroup => ({
+        var sharedItemGroupPrices = check.sharedItemGroups.map(itemGroup => ({
             owners: itemGroup.owners,
             groupPrice: itemGroup.price
         }));        
@@ -114,19 +122,19 @@ export function calculateSplit(
         var subtotalPreTax = (ownedItemGroupPrices as ItemGroupPrice[]).concat(sharedItemGroupPrices)
             .reduce((acc, itemGroup) => addMoney(acc, itemGroup.groupPrice), zeroDollars);
 
-        var actualTipResult = calculateTip(subtotalPreTax, postTaxPreTip, tipPercentageToPay, tipRoundingStrategy);
+        var actualTipResult = calculateTip(subtotalPreTax, check.postTaxPreTip, check.tipPercentageToPay, options.tipRoundingStrategy);
 
-        var splittableTipResult = calculateTip(subtotalPreTax, postTaxPreTip, tipPercentageToSplit, tipRoundingStrategy);
+        var splittableTipResult = calculateTip(subtotalPreTax, check.postTaxPreTip, check.tipPercentageToSplit, options.tipRoundingStrategy);
 
         // e.g. multiplies contributions buy 0.98 if splitting 2% cash back
-        var cashBackAdjustment = new Fraction(1).sub(cashBackPercentageToSplit);
+        var cashBackAdjustment = new Fraction(1).sub(check.cashBackPercentageToSplit);
         var totalToSplit = scaleMoney(splittableTipResult.totalAmount, cashBackAdjustment);
 
         var extraUnsplitTip = subtractMoney(actualTipResult.tipAmount, splittableTipResult.tipAmount);
 
         var individualShareFractions = computeIndividualShareFractions(ownedItemGroupPrices, sharedItemGroupPrices);
 
-        var namesInOrder = ownedItemGroups.map(itemGroup => itemGroup.owner);
+        var namesInOrder = check.ownedItemGroups.map(itemGroup => itemGroup.owner);
 
         return {
             Contributions: computeIndividualShares(totalToSplit, individualShareFractions, namesInOrder),
