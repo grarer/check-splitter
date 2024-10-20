@@ -1,22 +1,30 @@
 
 import { unwrap } from '@kanwren/minewt';
-import { Money, zeroDollars, addMoney, scaleMoney, MoneyRoundingStrategy, subtractMoney } from './money'; // Adjust the import path as necessary
+import { Money, zeroDollars, addMoney, scaleMoney, MoneyRoundingStrategy, subtractMoney, sumMoney } from './money'; // Adjust the import path as necessary
 import Fraction from 'fraction.js';
 import { calculateTip, TipPercentageOption } from './tip';
 
-export type OwnedItemGroupPrice = {
+export type OwnedItemGroup = {
     owner: string,
-    groupPrice: Money,
-    kind: "owned"
+    prices: Money[]
 }
 
-export type SharedItemGroupPrice = {
+export type SharedItemGroup = {
     owners: string[],
-    groupPrice: Money,
-    kind: "shared"
+    price: Money
 }
 
-export type ItemGroupPrice = OwnedItemGroupPrice | SharedItemGroupPrice
+export type ItemGroupPrice = {
+    groupPrice: Money
+}
+
+export type OwnedItemGroupPrice = ItemGroupPrice & {
+    owner: string,
+}
+
+export type SharedItemGroupPrice = ItemGroupPrice & {
+    owners: string[],
+}
 
 type ContributionResult = {
     owner: string,
@@ -82,20 +90,28 @@ function computeIndividualShares(totalToSplit: Money, shareFractions: Map<string
     return individualShares;    
 }
 
-
-function calculateSplit(
-    ownedItemGroups: OwnedItemGroupPrice[],
-    sharedItemGroups: SharedItemGroupPrice[],
+export function calculateSplit(
+    ownedItemGroups: OwnedItemGroup[],
+    sharedItemGroups: SharedItemGroup[],
     postTaxPreTip: Money,
     tipPercentageToPay: TipPercentageOption,
     tipPercentageToSplit: TipPercentageOption,
     cashBackPercentageToSplit: Fraction,
     tipRoundingStrategy: MoneyRoundingStrategy
     ): ComputeResult {
-
         // TODO throw if the split tip percentage is greater than the tip percentage to pay
 
-        var subtotalPreTax = (ownedItemGroups as ItemGroupPrice[]).concat(sharedItemGroups)
+        var ownedItemGroupPrices = ownedItemGroups.map(itemGroup => ({
+            owner: itemGroup.owner,
+            groupPrice: sumMoney(itemGroup.prices)
+        }));
+
+        var sharedItemGroupPrices = sharedItemGroups.map(itemGroup => ({
+            owners: itemGroup.owners,
+            groupPrice: itemGroup.price
+        }));        
+
+        var subtotalPreTax = (ownedItemGroupPrices as ItemGroupPrice[]).concat(sharedItemGroupPrices)
             .reduce((acc, itemGroup) => addMoney(acc, itemGroup.groupPrice), zeroDollars);
 
         var actualTipResult = calculateTip(subtotalPreTax, postTaxPreTip, tipPercentageToPay, tipRoundingStrategy);
@@ -108,7 +124,7 @@ function calculateSplit(
 
         var extraUnsplitTip = subtractMoney(actualTipResult.tipAmount, splittableTipResult.tipAmount);
 
-        var individualShareFractions = computeIndividualShareFractions(ownedItemGroups, sharedItemGroups);
+        var individualShareFractions = computeIndividualShareFractions(ownedItemGroupPrices, sharedItemGroupPrices);
 
         var namesInOrder = ownedItemGroups.map(itemGroup => itemGroup.owner);
 

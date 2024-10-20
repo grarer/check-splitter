@@ -4,6 +4,8 @@ import preactLogo from './assets/preact.svg';
 import './style.css';
 import { VNode } from 'preact';
 
+
+
 export function App() {
 	return (
 		<div>
