@@ -39,3 +39,9 @@ export function roundToCents(value: Money, roundingStrategy: MoneyRoundingStrate
             return impossible(roundingStrategy);
     }
 }
+
+export function formatMoney(value: Money): string {
+    // TODO good formatting
+    // TODO customize currency symbol?
+    return "$" + unwrap(value).toString();
+}
