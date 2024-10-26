@@ -1,11 +1,12 @@
 import { VNode } from "preact";
-import { formatMoney, Money, zeroDollars } from "../model/money";
 import { useRef, useState } from "preact/hooks";
 import { v4 as uuidv4 } from "uuid";
 import Fraction from "fraction.js";
+import { formatMoney, validateMoneyInput } from "../model/DineroIO";
+import { Dinero } from "dinero.js";
 
 type PriceListing = {
-    price: Money;
+    price: Dinero.Dinero;
     key: string;
 }
 
@@ -14,7 +15,7 @@ export function PricesInput(): VNode {
 
     const inputFieldRef = useRef<HTMLInputElement>(null);
 
-    function removeItem(key: number) {
+    function removeItem(key: string) {
         setPrices(prices.filter((priceListing) => priceListing.key !== key));
     }
 
@@ -22,10 +23,10 @@ export function PricesInput(): VNode {
     return (
         <div>
             <p>Prices Input</p>
-            {/* TODO use keys for efficient list updates when removing*/}
             {prices.map((listing) => <PriceDisplay
                 price={listing.price}
                 onDelete={() => removeItem(listing.key)}
+                key = {listing.key}
                 />
             )}
             <input ref={inputFieldRef} type="number"
@@ -33,22 +34,10 @@ export function PricesInput(): VNode {
                     if (event.key === "Enter") {
                         var inputFieldValue = inputFieldRef.current?.value;
 
-                        if(inputFieldValue === undefined) {
-                            // TODO snackbar if user hits enter with a blank input
-                            console.warn("inputFieldValue is undefined");
-                            return;
-                        }
-
-                        var price = Money(new Fraction(inputFieldValue));
-
-                        if(price === zeroDollars) {
-                            // TODO snackbar if user hits enter with a blank input
-                            console.warn("price is zeroDollars");
-                            return;
-                        }
-
-                        // TODO obtain better keys, like a UUIDv4
+                        // TODO snackbar/error message if the input is invalid
+                        var price = validateMoneyInput(inputFieldValue);
                         setPrices([...prices, { price: price, key: uuidv4() }]);
+                        inputFieldRef.current!.value = "";
                     }
                 }}/>
                 
@@ -56,7 +45,7 @@ export function PricesInput(): VNode {
     );
 }
 
-function PriceDisplay(props: { price: Money, onDelete: () => void }): VNode {
+function PriceDisplay(props: { price: Dinero.Dinero, onDelete: () => void }): VNode {
     return <div>
             <span>Price: {formatMoney(props.price)}</span>
             <button onClick={props.onDelete}>Delete</button>
