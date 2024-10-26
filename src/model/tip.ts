@@ -1,28 +1,18 @@
-import Fraction from "fraction.js"
-import { addMoney, Money, MoneyRoundingStrategy, roundToCents, scaleMoney } from "./money"
+import Dinero from "dinero.js";
 
+// TODO support other currencies
+const currency = "USD";
+const currencyPrecision = 2;
 
-
-export type TipPercentageOption = {
-    label: string,
-    tipFraction: Fraction
-}
-
-export const suggestedTipPercentages: TipPercentageOption[] = [0, 10, 15, 20, 24].map(percent => ({
-    label: `${percent}%`,
-    tipFraction: new Fraction(percent, 100)
-}));
+var x = Dinero({ amount: 1000, currency: currency, precision: currencyPrecision });
 
 export type TipResult = {
-    tipAmount: Money,
-    totalAmount: Money
+    tipAmount: Dinero.Dinero,
+    totalAmount: Dinero.Dinero
 }
 
-export function calculateTip(subtotalPreTax: Money, postTaxPreTip: Money, tipSelection: TipPercentageOption, roundingStrategy: MoneyRoundingStrategy): TipResult {
-    var tipAmountDollarsFractional = scaleMoney(subtotalPreTax, tipSelection.tipFraction);
-    var tipAmountRounded = roundToCents(tipAmountDollarsFractional, roundingStrategy);
-    return {
-        tipAmount: tipAmountRounded,
-        totalAmount: addMoney(postTaxPreTip, tipAmountRounded)
-    }
+export function ComputeTip(subtotalPreTaxAndFees: Dinero.Dinero, subtotalPostTaxAndFees: Dinero.Dinero, tipPercentage: number): TipResult {
+    var tipAmount = subtotalPreTaxAndFees.multiply(tipPercentage, "HALF_EVEN"); 
+    var totalAmount = subtotalPostTaxAndFees.add(tipAmount);
+    return { tipAmount, totalAmount };
 }

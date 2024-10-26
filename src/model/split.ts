@@ -1,145 +1,54 @@
-
-import { unwrap } from '@kanwren/minewt';
-import { Money, zeroDollars, addMoney, scaleMoney, MoneyRoundingStrategy, subtractMoney, sumMoney, roundToCents } from './money'; // Adjust the import path as necessary
-import Fraction from 'fraction.js';
-import { calculateTip, TipPercentageOption } from './tip';
-
-export type OwnedItemGroup = {
-    owner: string,
-    prices: Money[]
-}
-
-export type SharedItemGroup = {
+type ItemGroup = {
     owners: string[],
-    price: Money
+    prices: Dinero.Dinero[]
 }
 
-type ItemGroupPrice = {
-    groupPrice: Money
-}
-
-type OwnedItemGroupPrice = ItemGroupPrice & {
-    owner: string,
-}
-
-type SharedItemGroupPrice = ItemGroupPrice & {
-    owners: string[],
-}
-
-export type CheckInput = {
-    ownedItemGroups: OwnedItemGroup[],
-    sharedItemGroups: SharedItemGroup[],
-    postTaxPreTip: Money,
-    tipPercentageToPay: TipPercentageOption,
-    tipPercentageToSplit: TipPercentageOption,
-    cashBackPercentageToSplit: Fraction,
-}
-
-export type Options = {
-    tipRoundingStrategy: MoneyRoundingStrategy,
-    contributionRoundingStrategy: MoneyRoundingStrategy
-}
-
-type ContributionResult = {
-    owner: string,
-    contribution: Money
-}
-
-type ComputeResult = {
-    Contributions: ContributionResult[],
-    UnsplitTip: Money | null
+type Contribution = {
+    person: string,
+    amount: Dinero.Dinero
 }
 
 
-function getShareFractions(itemGroups: OwnedItemGroupPrice[]): Map<string, Fraction> {
-    var combinedSubtotal = zeroDollars
-    var individualSubtotals = new Map<string, Money>();
+var zeroMoney = Dinero({ amount: 0, currency: "USD", precision: 2 }); // TODO allow customizing currency and precision
 
-    for (var itemGroup of itemGroups) {
-        combinedSubtotal = addMoney(combinedSubtotal, itemGroup.groupPrice);
-        individualSubtotals.set(
-            itemGroup.owner,
-            addMoney(
-                individualSubtotals.get(itemGroup.owner) ?? zeroDollars,
-                itemGroup.groupPrice));
-    }
-
-    // divide those totals by the overall total
-    var shareFractions = new Map<string, Fraction>();
-    for (var [owner, ownerSubtotal] of individualSubtotals) {
-        shareFractions.set(owner, unwrap(ownerSubtotal).div(unwrap(combinedSubtotal)));
-    }
-
-    return shareFractions;
-}
-
-function divideSharedItemGroup(itemGroup: SharedItemGroupPrice): OwnedItemGroupPrice[] {
-    var pricePerPerson = scaleMoney(itemGroup.groupPrice, new Fraction(1, itemGroup.owners.length));
-    return itemGroup.owners.map(owner => ({
-        owner: owner,
-        groupPrice: pricePerPerson,
-        kind: "owned"
-    }));
-}
-
-function splitSharedItemGroupCosts(sharedItemGroupCosts: SharedItemGroupPrice[]): OwnedItemGroupPrice[] {
-    return sharedItemGroupCosts.flatMap(divideSharedItemGroup);
-}
-
-function computeIndividualShareFractions(ownedItemGroups: OwnedItemGroupPrice[], sharedItemGroups: SharedItemGroupPrice[]): Map<string, Fraction> {
-    return getShareFractions(ownedItemGroups.concat(splitSharedItemGroupCosts(sharedItemGroups)));
-}
-
-function computeIndividualShares(totalToSplit: Money, shareFractions: Map<string, Fraction>, nameOrder: string[], contributionRoundingStrategy: MoneyRoundingStrategy): ContributionResult[] {
-    var individualShares: ContributionResult[] = [];
-
-    for (var owner of nameOrder) {
-        var unroundedContribution = scaleMoney(totalToSplit, shareFractions.get(owner) ?? new Fraction(0));
-        var roundedContribution = roundToCents(unroundedContribution, contributionRoundingStrategy);
-
-        individualShares.push({
-            owner: owner,
-            contribution: roundedContribution
-        });
-    }
-
-    return individualShares;    
-}
-
-export function calculateSplit(check: CheckInput, options: Options): ComputeResult {
-        // TODO throw if the split tip percentage is greater than the tip percentage to pay
-        // TODO throw if the sum is 0 (i.e. if there are no nonzero amounts in the item groups)
-
-
-        var ownedItemGroupPrices = check.ownedItemGroups.map(itemGroup => ({
-            owner: itemGroup.owner,
-            groupPrice: sumMoney(itemGroup.prices)
-        }));
-
-        var sharedItemGroupPrices = check.sharedItemGroups.map(itemGroup => ({
-            owners: itemGroup.owners,
-            groupPrice: itemGroup.price
-        }));        
-
-        var subtotalPreTax = (ownedItemGroupPrices as ItemGroupPrice[]).concat(sharedItemGroupPrices)
-            .reduce((acc, itemGroup) => addMoney(acc, itemGroup.groupPrice), zeroDollars);
-
-        var actualTipResult = calculateTip(subtotalPreTax, check.postTaxPreTip, check.tipPercentageToPay, options.tipRoundingStrategy);
-
-        var splittableTipResult = calculateTip(subtotalPreTax, check.postTaxPreTip, check.tipPercentageToSplit, options.tipRoundingStrategy);
-
-        // e.g. multiplies contributions buy 0.98 if splitting 2% cash back
-        var cashBackAdjustment = new Fraction(1).sub(check.cashBackPercentageToSplit);
-        var totalToSplit = scaleMoney(splittableTipResult.totalAmount, cashBackAdjustment);
-
-        var extraUnsplitTip = subtractMoney(actualTipResult.tipAmount, splittableTipResult.tipAmount);
-
-        var individualShareFractions = computeIndividualShareFractions(ownedItemGroupPrices, sharedItemGroupPrices);
-
-        var namesInOrder = check.ownedItemGroups.map(itemGroup => itemGroup.owner);
-
-        return {
-            Contributions: computeIndividualShares(totalToSplit, individualShareFractions, namesInOrder, options.contributionRoundingStrategy),
-            UnsplitTip: extraUnsplitTip
+function sumItemGroupSubtotal(itemGroups: ItemGroup[]): Dinero.Dinero {
+    var total = zeroMoney;
+    for (var group of itemGroups) {
+        for (var price of group.prices) {
+            total = total.add(price);
         }
     }
+    return total;
+}
+
+// get per-person totals from item groups. costs of shared item groups are split evenly among owners
+// these totals are floating-point, which is fine since it will be rounded to nearest cent when distributing
+function combineShares( itemGroups: ItemGroup[],): Map<string, number> {
+    var individualShares = new Map<string, number>();
+
+    for (var group of itemGroups) {
+        if (group.owners.length == 0) {
+            throw new Error("Item group must have at least one owner");
+        }
+
+        var groupTotalPrice = zeroMoney;
+        for (var price of group.prices) {
+            groupTotalPrice = groupTotalPrice.add(price);
+        }
+        
+        var individualShare = groupTotalPrice.getAmount() / group.owners.length;
+        for (var owner of group.owners) {
+            var currentShare = individualShares.get(owner) ?? 0;
+            individualShares.set(owner, currentShare + individualShare);
+        }
+    }
+
+    return individualShares;
+}
+
+function distributeCosts(costToSplit: Dinero.Dinero, people: string[], itemGroups: ItemGroup[]): Contribution[] {
+    var individualShares = combineShares(itemGroups);
+    var ratios = people.map(person => individualShares.get(person) ?? 0);
+    var allocations = costToSplit.allocate(ratios);
+    return people.map((person, i) => ({person: person, amount: allocations[i]}));
+}
