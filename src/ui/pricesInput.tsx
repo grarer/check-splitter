@@ -1,9 +1,8 @@
 import { VNode } from "preact";
 import { useRef, useState } from "preact/hooks";
 import { v4 as uuidv4 } from "uuid";
-import Fraction from "fraction.js";
 import { formatMoney, validateMoneyInput } from "../model/DineroIO";
-import { Dinero } from "dinero.js";
+import { TextField } from "@mui/material";
 
 type PriceListing = {
     price: Dinero.Dinero;
@@ -22,7 +21,6 @@ export function PricesInput(): VNode {
 
     return (
         <div>
-            <p>Prices Input</p>
             {prices.map((listing) => <PriceDisplay
                 price={listing.price}
                 onDelete={() => removeItem(listing.key)}
