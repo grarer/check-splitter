@@ -9,6 +9,25 @@ function Hint(text: string): VNode {
     return <Typography variant="body1" style={{marginTop: "20px", opacity: "50%"}}>{text}</Typography>
 }
 
+function ContributionTable(props: {contributions: {person: string, amount: Dinero.Dinero}[]}) {
+    return <TableContainer component={Paper}>
+            <Table>
+                <TableHead>
+                    <TableRow>
+                        <TableCell>Person</TableCell>
+                        <TableCell>Contribution</TableCell>
+                    </TableRow>
+                </TableHead>
+                <TableBody>
+                    {props.contributions.map((contribution) => <TableRow key={contribution.person}>
+                        <TableCell>{contribution.person || "(no name)"}</TableCell>
+                        <TableCell>{formatMoney(contribution.amount)}</TableCell>
+                    </TableRow>)}
+                </TableBody>
+            </Table>
+        </TableContainer>
+}
+
 export function ResultsDisplay(props: {
     allNames: string[]
     itemGroups: ItemGroup[],
@@ -21,40 +40,24 @@ export function ResultsDisplay(props: {
         return Hint("Enter post-tax total to see results");
     }
 
-    if (props.preTaxSubtotal.isZero()) {
-        return Hint("Enter item prices to see results");
-    }
-
-
     const tipResult = ComputeTip(props.preTaxSubtotal, props.postTaxPreTipTotal, props.tipPercentage);
 
-    const contributions = distributeCosts(
-        tipResult.totalAmount,
-        props.allNames,
-        props.itemGroups
-    );
+    const contributions = props.preTaxSubtotal.isZero()
+        ? null 
+        : distributeCosts(
+            tipResult.totalAmount,
+            props.allNames,
+            props.itemGroups
+        );
 
     return <>
         <Typography variant="h5" style={{ marginTop: "15px" }}>Tip Amount</Typography>
         <Typography variant="h4" style={{ marginBottom: "15px" }}>{formatMoney(tipResult.tipAmount)}</Typography>
         <Typography variant="h5">Total</Typography>
         <Typography variant="h4" style={{ marginBottom: "15px" }}>{formatMoney(tipResult.totalAmount)}</Typography>
-        <TableContainer component={Paper}>
-            <Table>
-                <TableHead>
-                    <TableRow>
-                        <TableCell>Person</TableCell>
-                        <TableCell>Contribution</TableCell>
-                    </TableRow>
-                </TableHead>
-                <TableBody>
-                    {contributions.map((contribution) => <TableRow key={contribution.person}>
-                        <TableCell>{contribution.person || "(no name)"}</TableCell>
-                        <TableCell>{formatMoney(contribution.amount)}</TableCell>
-                    </TableRow>)}
-                </TableBody>
-            </Table>
-        </TableContainer>
+        {contributions === null
+            ? Hint("Enter per-person item prices to see individual contributions")
+            : <ContributionTable contributions={contributions} />}
     </>
         
 }
