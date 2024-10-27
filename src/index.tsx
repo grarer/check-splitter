@@ -21,13 +21,14 @@ const darkTheme = createTheme({
 
 
 export function App() {
+	// TODO setting page to set user name
 	return (
 		<ThemeProvider theme={darkTheme}>
 			<CssBaseline />
 			<AppBar position="static">
 				<Toolbar>
 					<Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-						Title Goes Here
+						Check Calculator
 					</Typography>
 					<IconButton><Settings/></IconButton>
 				</Toolbar>
