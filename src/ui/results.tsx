@@ -9,22 +9,7 @@ function Hint(text: string): VNode {
 }
 
 function ContributionTable(props: {contributions: {person: string, amount: Dinero.Dinero}[]}) {
-    return <TableContainer component={Paper}>
-            <Table>
-                <TableHead>
-                    <TableRow>
-                        <TableCell>Person</TableCell>
-                        <TableCell>Contribution</TableCell>
-                    </TableRow>
-                </TableHead>
-                <TableBody>
-                    {props.contributions.map((contribution) => <TableRow key={contribution.person}>
-                        <TableCell>{contribution.person || "(no name)"}</TableCell>
-                        <TableCell>{contribution.amount.toFormat()}</TableCell>
-                    </TableRow>)}
-                </TableBody>
-            </Table>
-        </TableContainer>
+    return 
 }
 
 export function ResultsDisplay(props: {
@@ -39,24 +24,39 @@ export function ResultsDisplay(props: {
         return Hint("Enter post-tax total to see results");
     }
 
+    if(props.preTaxSubtotal.isZero()) {
+        return Hint("Enter per-person item prices to see individual contributions")
+    }
+
     const tipResult = ComputeTip(props.preTaxSubtotal, props.postTaxPreTipTotal, props.tipPercentage);
 
-    const contributions = props.preTaxSubtotal.isZero()
-        ? null 
-        : distributeCosts(
-            tipResult.totalAmount,
-            props.allNames,
-            props.itemGroups
-        );
+    const contributions = distributeCosts(
+        tipResult.totalAmount,
+        props.allNames,
+        props.itemGroups
+    );
 
     return <>
         <Typography variant="h5" style={{ marginTop: "15px" }}>Tip Amount</Typography>
         <Typography variant="h4" style={{ marginBottom: "15px" }}>{tipResult.tipAmount.toFormat()}</Typography>
         <Typography variant="h5">Total</Typography>
         <Typography variant="h4" style={{ marginBottom: "15px" }}>{tipResult.totalAmount.toFormat()}</Typography>
-        {contributions === null
-            ? Hint("Enter per-person item prices to see individual contributions")
-            : <ContributionTable contributions={contributions} />}
+        <TableContainer component={Paper}>
+            <Table>
+                <TableHead>
+                    <TableRow>
+                        <TableCell>Person</TableCell>
+                        <TableCell>Contribution</TableCell>
+                    </TableRow>
+                </TableHead>
+                <TableBody>
+                    {contributions.map((contribution) => <TableRow key={contribution.person}>
+                        <TableCell>{contribution.person || "(no name)"}</TableCell>
+                        <TableCell>{contribution.amount.toFormat()}</TableCell>
+                    </TableRow>)}
+                </TableBody>
+            </Table>
+        </TableContainer>
     </>
         
 }
