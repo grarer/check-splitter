@@ -9,9 +9,10 @@ import '@fontsource/roboto/500.css';
 import '@fontsource/roboto/700.css';
 import { PricesInput } from './ui/pricesInput';
 import { AppBar, Button, Card, CardActions, CardContent, createTheme, CssBaseline, IconButton, Paper, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, ThemeProvider, Toolbar, Typography } from '@mui/material';
-import { CSSProperties } from 'preact/compat';
+import { CSSProperties, useState } from 'preact/compat';
 import { GroupAdd, PersonAddAlt1, Settings } from '@mui/icons-material';
 import { MainFlow } from './ui/mainFlow';
+import { SettingsDialog } from './ui/settings';
 
 const darkTheme = createTheme({
 	palette: {
@@ -22,6 +23,8 @@ const darkTheme = createTheme({
 
 export function App() {
 	// TODO setting page to set user name
+	const [showSettings, setShowSettings] = useState(false);
+
 	return (
 		<ThemeProvider theme={darkTheme}>
 			<CssBaseline />
@@ -30,12 +33,13 @@ export function App() {
 					<Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
 						Check Calculator
 					</Typography>
-					<IconButton><Settings/></IconButton>
+					<IconButton onClick={() => setShowSettings(true)}><Settings/></IconButton>
 				</Toolbar>
 			</AppBar>
 			<div style={{padding: "20px", maxWidth: "6in", margin: "auto"}}>
 				<MainFlow/>
 			</div>
+			<SettingsDialog open={showSettings} onClose={() => setShowSettings(false)}/>
 		</ThemeProvider>
 	);
 }

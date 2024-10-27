@@ -11,9 +11,7 @@ import { ItemGroup, zeroMoney } from "../model/split";
 import { formatMoney, formatMoneyNoSymbol, safeValidateMoneyInput, validateMoneyInput } from "../model/DineroIO";
 import { ResultsDisplay } from "./results";
 import { TipSelection } from "./tipSelection";
-
-
-const defaultFirstPersonName = "You"; // TODO make this settings-configurable
+import { getSettings } from "../model/settings";
 
 // TODO allow re-ordering people
 type personCardState = {
@@ -33,7 +31,7 @@ export function MainFlow(): VNode {
 
     const [personCards, setPersonCards] = useState<personCardState[]>([{
         groupKey: uuidv4(),
-        name: defaultFirstPersonName,
+        name: getSettings().yourName,
         itemPrices: [],
     }]);
     const [sharedItemsCards, setSharedItemsCards] = useState<sharedItemsCardState[]>([]);
