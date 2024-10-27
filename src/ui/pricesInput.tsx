@@ -40,6 +40,7 @@ export function PricesInput(props: {prices: PriceListing[], setPrices: (prices: 
                 <TextField
                     style={{marginTop: "10px", width: "100%"}}
                     type="number"
+                    step="any"
                     label="Add Item"
                     variant="filled"
                     slotProps={{
@@ -57,6 +58,7 @@ export function PricesInput(props: {prices: PriceListing[], setPrices: (prices: 
                     enterkeyhint="done"
                     onKeyDown = {(event) => {
                         if (event.key === "Enter") {
+                            event.preventDefault(); 
                                 try {
                                     const price = validateMoneyInput(addPriceFormValue);
                                     props.setPrices([...props.prices, { price: price, key: uuidv4() }]);
