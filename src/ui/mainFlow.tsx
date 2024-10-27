@@ -1,11 +1,13 @@
 import { PersonAddAlt1, GroupAdd } from "@mui/icons-material";
 import { Button, Card, CardActions, CardContent, Paper, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Typography } from "@mui/material";
+import { Dinero } from "dinero.js";
 import { VNode } from "preact";
-import { CSSProperties } from "preact/compat";
-
+import { CSSProperties, useState} from "preact/compat";
+import { v4 as uuidv4 } from "uuid";
 
 const cardVerticalMargin = "20px";
 
+const defaultPersonName = "You"; // TODO make this settings-configurable
 
 
 const cardStyle: CSSProperties = {
@@ -17,7 +19,32 @@ const addButtonStyle: CSSProperties = {
 	marginBottom: cardVerticalMargin,
 }
 
+type personCardState = {
+    key: string,
+    name: string,
+    itemPrices: Dinero.Dinero[],
+}
+
+type sharedItemsCardState = {
+    groupKey: string,
+    personKeys: string[],
+    itemPrices: Dinero.Dinero[],
+}
+
 export function MainFlow(): VNode {
+    
+
+    const [personCards, setPersonCards] = useState<personCardState[]>([{
+        key: uuidv4(),
+        name: defaultPersonName,
+        itemPrices: [],
+    }]);
+    const [sharedItemsCards, setSharedItemsCards] = useState<sharedItemsCardState[]>([]);
+    const [postTaxTotal, setPostTaxTotal] = useState<Dinero.Dinero | undefined>(undefined);
+    const [selectedTipPercentage, setSelectedTipPercentage] = useState(0.0);
+
+
+
     return <>
         <Card variant='outlined' style={cardStyle}>
 					<CardContent>
