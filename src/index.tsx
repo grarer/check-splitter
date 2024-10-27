@@ -17,6 +17,12 @@ import { SettingsDialog } from './ui/settings';
 const darkTheme = createTheme({
 	palette: {
 	  mode: 'dark',
+	  primary: {
+		main: '#ffffff',
+		light: '#ffffff',
+		dark: '#ffffff',
+
+	  }
 	},
   });
 

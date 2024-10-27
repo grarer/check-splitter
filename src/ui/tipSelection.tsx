@@ -23,7 +23,12 @@ export function TipSelection(props: {selectedTipPercentage: number, setSelectedT
     return <>
         <Typography variant="h5" style={{ marginTop: "15px", marginBottom: "5px" }}>Gratuity</Typography>
         <Stack direction="row" spacing={1}>
-            {options.map((option) => <Button variant={getVariant(option)} onClick={() => props.setSelectedTipPercentage(option.tipPercentage)}>{option.label}</Button>)}
+            {options.map((option) => <Button
+                variant={getVariant(option)}
+                onClick={() => props.setSelectedTipPercentage(option.tipPercentage)}
+                >      
+            {option.label}
+            </Button>)}
         </Stack>
     </>
 }
