@@ -32,12 +32,3 @@ export function safeValidateMoneyInput(inputString: string | undefined): Dinero.
         return `Invalid input: ${e}`;
     }
 }
-
-export function formatMoney(money: Dinero.Dinero): string {
-    // TODO customization?
-    return money.toFormat();
-}
-
-export function formatMoneyNoSymbol(money: Dinero.Dinero): string {
-    return money.toFormat("0,0.00");
-}

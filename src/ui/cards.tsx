@@ -4,7 +4,6 @@ import { cardStyle } from "./style";
 import { PriceListing, PricesInput } from "./pricesInput";
 import { Delete, Face, Face2, Face3, Person, Person2 } from "@mui/icons-material";
 import { zeroMoney } from "../model/split";
-import { formatMoney } from "../model/DineroIO";
 
 export type CommonCardProps = {
     itemPrices: PriceListing[],
@@ -13,7 +12,7 @@ export type CommonCardProps = {
 }
 
 export function CommonCard(props: CommonCardProps & { children: VNode }) {
-    var priceSum = formatMoney(props.itemPrices.map((priceListing) => priceListing.price).reduce((a, b) => a.add(b), zeroMoney));
+    var priceSum = props.itemPrices.map((priceListing) => priceListing.price).reduce((a, b) => a.add(b), zeroMoney).toFormat();
 
     return <Card style={cardStyle} elevation={3}>
         <CardContent style={{ paddingBottom: 8 }}>

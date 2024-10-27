@@ -1,14 +1,13 @@
 import { PersonAddAlt1, GroupAdd } from "@mui/icons-material";
-import { Button, Card, CardActions, CardContent, Paper, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Typography } from "@mui/material";
-import { Dinero } from "dinero.js";
+import { Button,  TextField, Typography } from "@mui/material";
 import { VNode } from "preact";
-import { CSSProperties, useRef, useState } from "preact/compat";
+import { useRef, useState } from "preact/compat";
 import { v4 as uuidv4 } from "uuid";
-import { addButtonStyle, cardStyle } from "./style";
+import { addButtonStyle, } from "./style";
 import { PersonCard, SharedGroupCard } from "./cards";
 import { PriceListing } from "./pricesInput";
 import { ItemGroup, zeroMoney } from "../model/split";
-import { formatMoney, formatMoneyNoSymbol, safeValidateMoneyInput, validateMoneyInput } from "../model/DineroIO";
+import { safeValidateMoneyInput, } from "../model/DineroIO";
 import { ResultsDisplay } from "./results";
 import { TipSelection } from "./tipSelection";
 import { getSettings } from "../model/settings";
@@ -142,7 +141,7 @@ export function MainFlow(): VNode {
         />)}
         <Button variant="contained" style={addButtonStyle} startIcon={<GroupAdd />} onClick={addSharedItems}>Add Shared Items</Button>
         <Typography variant="h5">Subtotal</Typography>
-        <Typography variant="h4" style={{ marginBottom: "15px" }}>{formatMoney(subTotalFromItemGroups)}</Typography>
+        <Typography variant="h4" style={{ marginBottom: "15px" }}>{subTotalFromItemGroups.toFormat()}</Typography>
         <TextField
             ref={postTaxTextFieldRef}
             label="Post-tax Total"

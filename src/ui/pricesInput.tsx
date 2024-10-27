@@ -1,7 +1,7 @@
 import { VNode } from "preact";
 import { useRef, useState } from "preact/hooks";
 import { v4 as uuidv4 } from "uuid";
-import { formatMoney, validateMoneyInput } from "../model/DineroIO";
+import { validateMoneyInput } from "../model/DineroIO";
 import { Alert, Chip, Divider, IconButton, Input, InputAdornment, Snackbar, Stack, TextField, Typography } from "@mui/material";
 import { Dinero } from "dinero.js";
 import { AttachMoney, Cancel, Clear } from "@mui/icons-material";
@@ -90,7 +90,7 @@ export function PricesInput(props: {prices: PriceListing[], setPrices: (prices: 
 
 function PriceEntry(props: {price: Dinero.Dinero, removeItem: () => void}): VNode {
     return <div style={{display: "flex", flexDirection: "row", width: "100%"}}>
-        <Typography>{formatMoney(props.price)}</Typography>
+        <Typography>{props.price.toFormat()}</Typography>
         <span style={{flexGrow: "1"}}/>
         <IconButton size="small" onClick={props.removeItem}><Cancel fontSize="inherit"/></IconButton>
     </div>;
