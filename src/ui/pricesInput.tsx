@@ -2,50 +2,69 @@ import { VNode } from "preact";
 import { useRef, useState } from "preact/hooks";
 import { v4 as uuidv4 } from "uuid";
 import { formatMoney, validateMoneyInput } from "../model/DineroIO";
-import { TextField } from "@mui/material";
+import { Chip, Divider, IconButton, Input, InputAdornment, Stack, TextField, Typography } from "@mui/material";
+import { Dinero } from "dinero.js";
+import { AttachMoney, Cancel, Clear } from "@mui/icons-material";
 
-type PriceListing = {
+export type PriceListing = {
     price: Dinero.Dinero;
     key: string;
 }
 
-export function PricesInput(): VNode {
-    const [prices, setPrices] = useState<PriceListing[]>([]);
 
-    const inputFieldRef = useRef<HTMLInputElement>(null);
+
+export function PricesInput(props: {prices: PriceListing[], setPrices: (prices: PriceListing[]) => void}): VNode {
+    const [addPriceFormValue, setAddPriceFormValue] = useState("");
 
     function removeItem(key: string) {
-        setPrices(prices.filter((priceListing) => priceListing.key !== key));
+        props.setPrices(props.prices.filter((priceListing) => priceListing.key !== key));
     }
 
-
     return (
-        <div>
-            {prices.map((listing) => <PriceDisplay
-                price={listing.price}
-                onDelete={() => removeItem(listing.key)}
-                key = {listing.key}
-                />
-            )}
-            <input ref={inputFieldRef} type="number"
+        <>
+            <Stack
+                direction={"column"}
+                divider={<Divider orientation="horizontal" flexItem />}
+            >
+                {props.prices.map((listing) =>
+                    <PriceEntry price={listing.price} removeItem={() => removeItem(listing.key)}/>
+                )}
+            </Stack>
+            
+
+            {/* TODO add currency symbol to the input */}
+            <TextField
+                style={{marginTop: "10px", width: "100%"}}
+                type="number"
+                label="Add Item"
+                variant="filled"
+                slotProps={{
+                    input: {
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <AttachMoney />
+                        </InputAdornment>
+                      ),
+                    },
+                  }}
+                value={addPriceFormValue}
+                onChange={(event) => setAddPriceFormValue((event.target as HTMLInputElement).value)}
                 onKeyUp = {(event) => {
                     if (event.key === "Enter") {
-                        var inputFieldValue = inputFieldRef.current?.value;
-
                         // TODO snackbar/error message if the input is invalid
-                        var price = validateMoneyInput(inputFieldValue);
-                        setPrices([...prices, { price: price, key: uuidv4() }]);
-                        inputFieldRef.current!.value = "";
+                        var price = validateMoneyInput(addPriceFormValue);
+                        props.setPrices([...props.prices, { price: price, key: uuidv4() }]);
+                        setAddPriceFormValue("");
                     }
                 }}/>
-                
-        </div>
+        </>
     );
 }
 
-function PriceDisplay(props: { price: Dinero.Dinero, onDelete: () => void }): VNode {
-    return <div>
-            <span>Price: {formatMoney(props.price)}</span>
-            <button onClick={props.onDelete}>Delete</button>
-        </div>;
+function PriceEntry(props: {price: Dinero.Dinero, removeItem: () => void}): VNode {
+    return <div style={{display: "flex", flexDirection: "row", width: "100%"}}>
+        <Typography>{formatMoney(props.price)}</Typography>
+        <span style={{flexGrow: "1"}}/>
+        <IconButton size="small" onClick={props.removeItem}><Cancel fontSize="inherit"/></IconButton>
+    </div>;
 }

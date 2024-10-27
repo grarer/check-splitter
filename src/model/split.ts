@@ -1,3 +1,5 @@
+import Dinero from "dinero.js";
+
 type ItemGroup = {
     owners: string[],
     prices: Dinero.Dinero[]
@@ -9,7 +11,7 @@ type Contribution = {
 }
 
 
-var zeroMoney = Dinero({ amount: 0, currency: "USD", precision: 2 }); // TODO allow customizing currency and precision
+export var zeroMoney = Dinero({ amount: 0, currency: "USD", precision: 2 }); // TODO allow customizing currency and precision
 
 function sumItemGroupSubtotal(itemGroups: ItemGroup[]): Dinero.Dinero {
     var total = zeroMoney;

@@ -6,28 +6,29 @@ import { CSSProperties, useState } from "preact/compat";
 import { v4 as uuidv4 } from "uuid";
 import { addButtonStyle, cardStyle } from "./style";
 import { PersonCard } from "./cards";
+import { PriceListing } from "./pricesInput";
 
 
 const defaultFirstPersonName = "You"; // TODO make this settings-configurable
 
 // TODO allow re-ordering people
 type personCardState = {
-    key: string,
+    groupKey: string,
     name: string,
-    itemPrices: Dinero.Dinero[],
+    itemPrices: PriceListing[],
 }
 
 type sharedItemsCardState = {
     groupKey: string,
     personKeys: string[],
-    itemPrices: Dinero.Dinero[],
+    itemPrices: PriceListing[],
 }
 
 export function MainFlow(): VNode {
 
 
     const [personCards, setPersonCards] = useState<personCardState[]>([{
-        key: uuidv4(),
+        groupKey: uuidv4(),
         name: defaultFirstPersonName,
         itemPrices: [],
     }]);
@@ -37,7 +38,7 @@ export function MainFlow(): VNode {
 
     function setPersonName(key: string, newName: string) {
         setPersonCards(personCards.map((personCard) => {
-            if (personCard.key === key) {
+            if (personCard.groupKey === key) {
                 return { ...personCard, name: newName };
             } else {
                 return personCard;
@@ -45,9 +46,9 @@ export function MainFlow(): VNode {
         }));
     }
 
-    function setPersonItemPrices(key: string, newItemPrices: Dinero.Dinero[]) {
+    function setPersonItemPrices(key: string, newItemPrices: PriceListing[]) {
         setPersonCards(personCards.map((personCard) => {
-            if (personCard.key === key) {
+            if (personCard.groupKey === key) {
                 return { ...personCard, itemPrices: newItemPrices };
             } else {
                 return personCard;
@@ -57,14 +58,14 @@ export function MainFlow(): VNode {
 
     function addPerson() {
         setPersonCards([...personCards, {
-            key: uuidv4(),
+            groupKey: uuidv4(),
             name: "",
             itemPrices: [],
         }]);
     }
 
     function removePerson(key: string) {
-        setPersonCards(personCards.filter((personCard) => personCard.key !== key));
+        setPersonCards(personCards.filter((personCard) => personCard.groupKey !== key));
 
         setSharedItemsCards(sharedItemsCards.map((sharedItemsCard) => {
             return { ...sharedItemsCard, personKeys: sharedItemsCard.personKeys.filter((personKey) => personKey !== key) };
@@ -74,12 +75,12 @@ export function MainFlow(): VNode {
     function addSharedItems() {
         setSharedItemsCards([...sharedItemsCards, {
             groupKey: uuidv4(),
-            personKeys: personCards.map((personCard) => personCard.key),
+            personKeys: personCards.map((personCard) => personCard.groupKey),
             itemPrices: [],
         }]);
     }
 
-    function setSharedItemsPrices(groupKey: string, newItemPrices: Dinero.Dinero[]) {
+    function setSharedItemsPrices(groupKey: string, newItemPrices: PriceListing[]) {
         setSharedItemsCards(sharedItemsCards.map((sharedItemsCard) => {
             if (sharedItemsCard.groupKey === groupKey) {
                 return { ...sharedItemsCard, itemPrices: newItemPrices };
@@ -97,12 +98,17 @@ export function MainFlow(): VNode {
     return <>
         {personCards.map((personCard) => <PersonCard
             name={personCard.name}
-            setName={(newName) => setPersonName(personCard.key, newName)}
+            setName={(newName) => setPersonName(personCard.groupKey, newName)}
             itemPrices={personCard.itemPrices}
-            setItemPrices={(newItemPrices) => setPersonItemPrices(personCard.key, newItemPrices)}
-            removeGroup={() => removePerson(personCard.key)}
+            setItemPrices={(newItemPrices) => setPersonItemPrices(personCard.groupKey, newItemPrices)}
+            removeGroup={() => removePerson(personCard.groupKey)}
         />)}
-        <Button variant="contained" style={addButtonStyle} startIcon={<PersonAddAlt1 />}>Add Person</Button>
+        <Button
+            variant="contained"
+            style={addButtonStyle}
+            startIcon={<PersonAddAlt1 />}
+            onClick={addPerson}
+        >Add Person</Button>
         <Card variant='outlined' style={cardStyle}>
             <CardContent>
                 <Typography variant="body1">shared items card body text</Typography>
