@@ -7,6 +7,9 @@ import { v4 as uuidv4 } from "uuid";
 import { addButtonStyle, cardStyle } from "./style";
 import { PersonCard, SharedGroupCard } from "./cards";
 import { PriceListing } from "./pricesInput";
+import { ItemGroup, zeroMoney } from "../model/split";
+import { formatMoney, formatMoneyNoSymbol, safeValidateMoneyInput, validateMoneyInput } from "../model/DineroIO";
+import { ResultsDisplay } from "./results";
 
 
 const defaultFirstPersonName = "You"; // TODO make this settings-configurable
@@ -33,8 +36,18 @@ export function MainFlow(): VNode {
         itemPrices: [],
     }]);
     const [sharedItemsCards, setSharedItemsCards] = useState<sharedItemsCardState[]>([]);
-    const [postTaxTotal, setPostTaxTotal] = useState<Dinero.Dinero | undefined>(undefined);
+    const [postTaxTotalInputValue, setPostTaxTotalInputValue] = useState<string >("");
     const [selectedTipPercentage, setSelectedTipPercentage] = useState(0.0);
+
+    const subTotalFromItemGroups = personCards.map(c => c.itemPrices).concat(sharedItemsCards.map(c => c.itemPrices)).flat().map(p => p.price).reduce((a, b) => a.add(b), zeroMoney);
+
+    const allPeople = personCards.map((personCard) => ({ name: personCard.name, key: personCard.groupKey }));
+
+    const postTaxTotalMoneyResult = safeValidateMoneyInput(postTaxTotalInputValue);
+    const postTaxErrorMessage = typeof postTaxTotalMoneyResult === "string" && postTaxTotalInputValue != "" ? postTaxTotalMoneyResult : undefined;
+    const postTaxTotalMoney = typeof postTaxTotalMoneyResult === "string" ? undefined : postTaxTotalMoneyResult;
+
+    const CanShowResults = postTaxTotalMoney != undefined && subTotalFromItemGroups.getAmount() != 0;
 
     function setPersonName(key: string, newName: string) {
         setPersonCards(personCards.map((personCard) => {
@@ -122,14 +135,23 @@ export function MainFlow(): VNode {
             itemPrices={sharedItemsCard.itemPrices}
             setItemPrices={(newItemPrices) => setSharedItemsPrices(sharedItemsCard.groupKey, newItemPrices)}
             removeGroup={() => removeSharedItems(sharedItemsCard.groupKey)}
-            allPeople={personCards.map((personCard) => ({ name: personCard.name, key: personCard.groupKey }))}
+            allPeople={allPeople}
             selectedPersonKeys={sharedItemsCard.personKeys}
             setSelectedPersonKeys={(newKeys) => setSharedItemsSelectedPersonKeys(sharedItemsCard.groupKey, newKeys)}
         />)}
         <Button variant="contained" style={addButtonStyle} startIcon={<GroupAdd />} onClick={addSharedItems}>Add Shared Items</Button>
         <Typography variant="h5">Subtotal</Typography>
-        <Typography variant="h4" style={{ marginBottom: "15px" }}>$123.45</Typography>
-        <TextField label="Post-tax Total" variant="filled" style={{ width: "100%" }} />
+        <Typography variant="h4" style={{ marginBottom: "15px" }}>{formatMoney(subTotalFromItemGroups)}</Typography>
+        <TextField
+            label="Post-tax Total"
+            variant="filled"
+            style={{ width: "100%" }}
+            type="number"
+            value={postTaxTotalInputValue}
+            onChange={event => setPostTaxTotalInputValue((event.target as HTMLInputElement).value)}
+            error={postTaxErrorMessage !== undefined}
+            helperText={postTaxErrorMessage}
+        />
         <Typography variant="h5" style={{ marginTop: "15px", marginBottom: "5px" }}>Gratuity</Typography>
         <Stack direction="row" spacing={1}>
             <Button variant="outlined">0%</Button>
@@ -138,33 +160,22 @@ export function MainFlow(): VNode {
             <Button variant="outlined">20%</Button>
             <Button variant="outlined">Custom</Button>
         </Stack>
-        <Typography variant="h5" style={{ marginTop: "15px" }}>Tip Amount</Typography>
-        <Typography variant="h4" style={{ marginBottom: "15px" }}>$18.52</Typography>
-        <Typography variant="h5">Total</Typography>
-        <Typography variant="h4" style={{ marginBottom: "15px" }}>$141.97</Typography>
-        <TableContainer component={Paper}>
-            <Table>
-                <TableHead>
-                    <TableRow>
-                        <TableCell>Person</TableCell>
-                        <TableCell>Contribution</TableCell>
-                    </TableRow>
-                </TableHead>
-                <TableBody>
-                    <TableRow>
-                        <TableCell>Alice</TableCell>
-                        <TableCell>$123.45</TableCell>
-                    </TableRow>
-                    <TableRow>
-                        <TableCell>Bob</TableCell>
-                        <TableCell>$18.52</TableCell>
-                    </TableRow>
-                    <TableRow>
-                        <TableCell>Charlie</TableCell>
-                        <TableCell>$0.00</TableCell>
-                    </TableRow>
-                </TableBody>
-            </Table>
-        </TableContainer>
+        <ResultsDisplay
+            canShowResults={CanShowResults}
+            allNames={allPeople.map((person) => person.name)}
+            tipPercentage={selectedTipPercentage}
+            preTaxSubtotal={subTotalFromItemGroups}
+            postTaxPreTipTotal={postTaxTotalMoney!}
+            itemGroups={
+                personCards.map((personCard) => ({
+                    owners: [personCard.name],
+                    prices: personCard.itemPrices.map((priceListing) => priceListing.price),
+                }))
+                .concat(sharedItemsCards.map((sharedItemsCard) => ({
+                    owners: allPeople.filter((person) => sharedItemsCard.personKeys.includes(person.key)).map((person) => person.name),
+                    prices: sharedItemsCard.itemPrices.map((priceListing) => priceListing.price),
+                })))
+            }
+        />
     </>
 }

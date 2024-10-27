@@ -1,6 +1,6 @@
 import Dinero from "dinero.js";
 
-type ItemGroup = {
+export type ItemGroup = {
     owners: string[],
     prices: Dinero.Dinero[]
 }
@@ -48,7 +48,7 @@ function combineShares( itemGroups: ItemGroup[],): Map<string, number> {
     return individualShares;
 }
 
-function distributeCosts(costToSplit: Dinero.Dinero, people: string[], itemGroups: ItemGroup[]): Contribution[] {
+export function distributeCosts(costToSplit: Dinero.Dinero, people: string[], itemGroups: ItemGroup[]): Contribution[] {
     var individualShares = combineShares(itemGroups);
     var ratios = people.map(person => individualShares.get(person) ?? 0);
     var allocations = costToSplit.allocate(ratios);
