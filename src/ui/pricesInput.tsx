@@ -31,37 +31,53 @@ export function PricesInput(props: {prices: PriceListing[], setPrices: (prices: 
                     <PriceEntry price={listing.price} removeItem={() => removeItem(listing.key)} key={listing.key}/>
                 )}
             </Stack>
-            <TextField
-                style={{marginTop: "10px", width: "100%"}}
-                type="number"
-                label="Add Item"
-                variant="filled"
-                slotProps={{
-                    input: {
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <AttachMoney />
-                        </InputAdornment>
-                      ),
-                    },
-                  }}
-                value={addPriceFormValue}
-                onChange={(event) => setAddPriceFormValue((event.target as HTMLInputElement).value)}
-                onKeyUp = {(event) => {
-                    if (event.key === "Enter") {
-                        try {
-                            const price = validateMoneyInput(addPriceFormValue);
-                            props.setPrices([...props.prices, { price: price, key: uuidv4() }]);
-                            setAddPriceFormValue("");
-                        } catch (e: unknown) {
-                            if (e instanceof Error) {
-                                setSnackbarMessage(e.message);
-                            } else {
-                                setSnackbarMessage("Invalid amount.");
+            <form
+                onSubmit={e => { 
+                    
+                    e.preventDefault(); 
+                    console.log("form submit");
+                }}
+            >
+                <TextField
+                    style={{marginTop: "10px", width: "100%"}}
+                    type="number"
+                    label="Add Item"
+                    variant="filled"
+                    slotProps={{
+                        input: {
+                        startAdornment: (
+                            <InputAdornment position="start">
+                            <AttachMoney />
+                            </InputAdornment>
+                        ),
+                        },
+                    }}
+                    value={addPriceFormValue}
+                    onChange={(event) => setAddPriceFormValue((event.target as HTMLInputElement).value)}
+                    inputmode="decimal"
+                    enterkeyhint="done"
+                    onSubmit={(event) => {
+                        event.preventDefault(); // TODO do we need this?
+
+                    }}
+                    onKeyDown = {(event) => {
+                        console.log(event.key);
+                        if (event.key === "Enter") {
+                            event.preventDefault(); // TODO do we need this?
+                                try {
+                                    const price = validateMoneyInput(addPriceFormValue);
+                                    props.setPrices([...props.prices, { price: price, key: uuidv4() }]);
+                                    setAddPriceFormValue("");
+                                } catch (e: unknown) {
+                                    if (e instanceof Error) {
+                                        setSnackbarMessage(e.message);
+                                    } else {
+                                        setSnackbarMessage("Invalid amount.");
+                                    }
+                                }
                             }
-                        }
-                    }
-                }}/>
+                    }}/>
+            </form>
                 <Snackbar
                     open={snackbarMessage !== undefined}
                     autoHideDuration={2000}
