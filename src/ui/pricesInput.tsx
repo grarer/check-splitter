@@ -27,12 +27,9 @@ export function PricesInput(props: {prices: PriceListing[], setPrices: (prices: 
                 divider={<Divider orientation="horizontal" flexItem />}
             >
                 {props.prices.map((listing) =>
-                    <PriceEntry price={listing.price} removeItem={() => removeItem(listing.key)}/>
+                    <PriceEntry price={listing.price} removeItem={() => removeItem(listing.key)} key={listing.key}/>
                 )}
             </Stack>
-            
-
-            {/* TODO add currency symbol to the input */}
             <TextField
                 style={{marginTop: "10px", width: "100%"}}
                 type="number"

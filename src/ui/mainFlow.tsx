@@ -5,7 +5,7 @@ import { VNode } from "preact";
 import { CSSProperties, useState } from "preact/compat";
 import { v4 as uuidv4 } from "uuid";
 import { addButtonStyle, cardStyle } from "./style";
-import { PersonCard } from "./cards";
+import { PersonCard, SharedGroupCard } from "./cards";
 import { PriceListing } from "./pricesInput";
 
 
@@ -90,10 +90,19 @@ export function MainFlow(): VNode {
         }));
     }
 
+    function setSharedItemsSelectedPersonKeys(groupKey: string, newKeys: string[]) {
+        setSharedItemsCards(sharedItemsCards.map((sharedItemsCard) => {
+            if (sharedItemsCard.groupKey === groupKey) {
+                return { ...sharedItemsCard, personKeys: newKeys };
+            } else {
+                return sharedItemsCard;
+            }
+        }));
+    }
+
     function removeSharedItems(groupKey: string) {
         setSharedItemsCards(sharedItemsCards.filter((sharedItemsCard) => sharedItemsCard.groupKey !== groupKey));
     }
-
 
     return <>
         {personCards.map((personCard) => <PersonCard
@@ -109,15 +118,15 @@ export function MainFlow(): VNode {
             startIcon={<PersonAddAlt1 />}
             onClick={addPerson}
         >Add Person</Button>
-        <Card variant='outlined' style={cardStyle}>
-            <CardContent>
-                <Typography variant="body1">shared items card body text</Typography>
-            </CardContent>
-            <CardActions>
-                <Button size="small">Actions Go Here</Button>
-            </CardActions>
-        </Card>
-        <Button variant="contained" style={addButtonStyle} startIcon={<GroupAdd />}>Add Shared Items</Button>
+        {sharedItemsCards.map((sharedItemsCard) => <SharedGroupCard
+            itemPrices={sharedItemsCard.itemPrices}
+            setItemPrices={(newItemPrices) => setSharedItemsPrices(sharedItemsCard.groupKey, newItemPrices)}
+            removeGroup={() => removeSharedItems(sharedItemsCard.groupKey)}
+            allPeople={personCards.map((personCard) => ({ name: personCard.name, key: personCard.groupKey }))}
+            selectedPersonKeys={sharedItemsCard.personKeys}
+            setSelectedPersonKeys={(newKeys) => setSharedItemsSelectedPersonKeys(sharedItemsCard.groupKey, newKeys)}
+        />)}
+        <Button variant="contained" style={addButtonStyle} startIcon={<GroupAdd />} onClick={addSharedItems}>Add Shared Items</Button>
         <Typography variant="h5">Subtotal</Typography>
         <Typography variant="h4" style={{ marginBottom: "15px" }}>$123.45</Typography>
         <TextField label="Post-tax Total" variant="filled" style={{ width: "100%" }} />
