@@ -2,7 +2,7 @@ import { VNode } from "preact";
 import { useRef, useState } from "preact/hooks";
 import { v4 as uuidv4 } from "uuid";
 import { formatMoney, validateMoneyInput } from "../model/DineroIO";
-import { Chip, Divider, IconButton, Input, InputAdornment, Stack, TextField, Typography } from "@mui/material";
+import { Alert, Chip, Divider, IconButton, Input, InputAdornment, Snackbar, Stack, TextField, Typography } from "@mui/material";
 import { Dinero } from "dinero.js";
 import { AttachMoney, Cancel, Clear } from "@mui/icons-material";
 
@@ -15,6 +15,7 @@ export type PriceListing = {
 
 export function PricesInput(props: {prices: PriceListing[], setPrices: (prices: PriceListing[]) => void}): VNode {
     const [addPriceFormValue, setAddPriceFormValue] = useState("");
+    const [snackbarMessage, setSnackbarMessage] = useState<string | undefined>(undefined);
 
     function removeItem(key: string) {
         props.setPrices(props.prices.filter((priceListing) => priceListing.key !== key));
@@ -48,12 +49,31 @@ export function PricesInput(props: {prices: PriceListing[], setPrices: (prices: 
                 onChange={(event) => setAddPriceFormValue((event.target as HTMLInputElement).value)}
                 onKeyUp = {(event) => {
                     if (event.key === "Enter") {
-                        // TODO snackbar/error message if the input is invalid
-                        var price = validateMoneyInput(addPriceFormValue);
-                        props.setPrices([...props.prices, { price: price, key: uuidv4() }]);
-                        setAddPriceFormValue("");
+                        try {
+                            const price = validateMoneyInput(addPriceFormValue);
+                            props.setPrices([...props.prices, { price: price, key: uuidv4() }]);
+                            setAddPriceFormValue("");
+                        } catch (e: unknown) {
+                            if (e instanceof Error) {
+                                setSnackbarMessage(e.message);
+                            } else {
+                                setSnackbarMessage("Invalid amount.");
+                            }
+                        }
                     }
                 }}/>
+                <Snackbar
+                    open={snackbarMessage !== undefined}
+                    autoHideDuration={2000}
+                    onClose={() => setSnackbarMessage(undefined)}
+                >
+                    <Alert
+                        onClose={() => setSnackbarMessage(undefined)}
+                        severity="error"
+                        variant="filled"
+                        sx={{ width: '100%' }}
+                    >{snackbarMessage}</Alert>
+                </Snackbar>
         </>
     );
 }
