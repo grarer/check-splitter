@@ -10,6 +10,7 @@ import { PriceListing } from "./pricesInput";
 import { ItemGroup, zeroMoney } from "../model/split";
 import { formatMoney, formatMoneyNoSymbol, safeValidateMoneyInput, validateMoneyInput } from "../model/DineroIO";
 import { ResultsDisplay } from "./results";
+import { TipSelection } from "./tipSelection";
 
 
 const defaultFirstPersonName = "You"; // TODO make this settings-configurable
@@ -152,14 +153,10 @@ export function MainFlow(): VNode {
             error={postTaxErrorMessage !== undefined}
             helperText={postTaxErrorMessage}
         />
-        <Typography variant="h5" style={{ marginTop: "15px", marginBottom: "5px" }}>Gratuity</Typography>
-        <Stack direction="row" spacing={1}>
-            <Button variant="outlined">0%</Button>
-            <Button variant="outlined">10%</Button>
-            <Button variant="contained">15%</Button>
-            <Button variant="outlined">20%</Button>
-            <Button variant="outlined">Custom</Button>
-        </Stack>
+        <TipSelection
+            selectedTipPercentage={selectedTipPercentage}
+            setSelectedTipPercentage={setSelectedTipPercentage}
+        />
         <ResultsDisplay
             canShowResults={CanShowResults}
             allNames={allPeople.map((person) => person.name)}

@@ -40,7 +40,7 @@ export function ResultsDisplay(props: {
                 </TableHead>
                 <TableBody>
                     {contributions.map((contribution) => <TableRow key={contribution.person}>
-                        <TableCell>{contribution.person}</TableCell>
+                        <TableCell>{contribution.person || "(no name)"}</TableCell>
                         <TableCell>{formatMoney(contribution.amount)}</TableCell>
                     </TableRow>)}
                 </TableBody>
