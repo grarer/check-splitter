@@ -12,8 +12,6 @@ import { ResultsDisplay } from "./results";
 import { TipSelection } from "./tipSelection";
 import { getSettings } from "../model/settings";
 
-// TODO allow re-ordering people
-
 type commonCardState = {
     groupKey: string,
     itemPrices: PriceListing[],
