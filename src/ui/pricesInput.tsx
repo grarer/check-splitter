@@ -57,7 +57,6 @@ export function PricesInput(props: {prices: PriceListing[], setPrices: (prices: 
                     inputmode="decimal"
                     enterkeyhint="done"
                     onKeyDown = {(event) => {
-                        console.log(event.key);
                         if (event.key === "Enter") {
                                 try {
                                     const price = validateMoneyInput(addPriceFormValue);
