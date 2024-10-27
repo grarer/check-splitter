@@ -56,14 +56,9 @@ export function PricesInput(props: {prices: PriceListing[], setPrices: (prices: 
                     onChange={(event) => setAddPriceFormValue((event.target as HTMLInputElement).value)}
                     inputmode="decimal"
                     enterkeyhint="done"
-                    onSubmit={(event) => {
-                        event.preventDefault(); // TODO do we need this?
-
-                    }}
                     onKeyDown = {(event) => {
                         console.log(event.key);
                         if (event.key === "Enter") {
-                            event.preventDefault(); // TODO do we need this?
                                 try {
                                     const price = validateMoneyInput(addPriceFormValue);
                                     props.setPrices([...props.prices, { price: price, key: uuidv4() }]);
