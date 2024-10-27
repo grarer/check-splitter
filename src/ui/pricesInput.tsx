@@ -35,7 +35,6 @@ export function PricesInput(props: {prices: PriceListing[], setPrices: (prices: 
                 onSubmit={e => { 
                     
                     e.preventDefault(); 
-                    console.log("form submit");
                 }}
             >
                 <TextField

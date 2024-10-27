@@ -13,16 +13,19 @@ import { TipSelection } from "./tipSelection";
 import { getSettings } from "../model/settings";
 
 // TODO allow re-ordering people
-type personCardState = {
+
+type commonCardState = {
     groupKey: string,
-    name: string,
     itemPrices: PriceListing[],
+    index: number,
 }
 
-type sharedItemsCardState = {
-    groupKey: string,
+type personCardState =  commonCardState & {
+    name: string,
+}
+
+type sharedItemsCardState = commonCardState & {
     personKeys: string[],
-    itemPrices: PriceListing[],
 }
 
 export function MainFlow(): VNode {
@@ -32,10 +35,19 @@ export function MainFlow(): VNode {
         groupKey: uuidv4(),
         name: getSettings().yourName,
         itemPrices: [],
+        index: 0,
     }]);
     const [sharedItemsCards, setSharedItemsCards] = useState<sharedItemsCardState[]>([]);
     const [postTaxTotalInputValue, setPostTaxTotalInputValue] = useState<string >("");
     const [selectedTipPercentage, setSelectedTipPercentage] = useState(0.0);
+
+    const personIndices = personCards.map((personCard) => personCard.index);
+    const lowestPersonIndex = Math.min(...personIndices);
+    const highestPersonIndex = Math.max(...personIndices);
+
+    const sharedItemsIndices = sharedItemsCards.map((sharedItemsCard) => sharedItemsCard.index);
+    const lowestSharedItemsIndex = Math.min(...sharedItemsIndices);
+    const highestSharedItemsIndex = Math.max(...sharedItemsIndices);
 
     const postTaxTextFieldRef = useRef<HTMLDivElement>(null);
 
@@ -46,6 +58,38 @@ export function MainFlow(): VNode {
     const postTaxTotalMoneyResult = safeValidateMoneyInput(postTaxTotalInputValue);
     const postTaxErrorMessage = typeof postTaxTotalMoneyResult === "string" && postTaxTotalInputValue != "" ? postTaxTotalMoneyResult : undefined;
     const postTaxTotalMoney = typeof postTaxTotalMoneyResult === "string" ? undefined : postTaxTotalMoneyResult;
+
+    function moveCard(cardType: "people" | "shared", groupKey: string, direction: "up" | "down") {
+        const cards = cardType === "people" ? personCards : sharedItemsCards;
+        const allIndices = cards.map((card) => card.index);
+
+        const thisCard = cards.find((card) => card.groupKey === groupKey)!;
+        const thisCardIndex = thisCard.index;
+
+        const targetIndex = direction === "up"
+            ? Math.max(...allIndices.filter((index) => index < thisCardIndex)) 
+            : Math.min(...allIndices.filter((index) => index > thisCardIndex));
+
+        const targetCard = cards.find((card) => card.index === targetIndex)!;
+
+        const newCards = cards.map((card) => {
+            if (card.groupKey === groupKey) {
+                return { ...card, index: targetIndex };
+            } else if (card.groupKey === targetCard.groupKey) {
+                return { ...card, index: thisCardIndex };
+            } else {
+                return card;
+            }
+        });
+
+        // TODO we don't need unsafe conversions here
+        if (cardType === "people") {
+            setPersonCards(newCards as personCardState[]);
+        } else {
+            setSharedItemsCards(newCards as sharedItemsCardState[]);
+        }
+
+    }
 
     function setPersonName(key: string, newName: string) {
         setPersonCards(personCards.map((personCard) => {
@@ -68,10 +112,13 @@ export function MainFlow(): VNode {
     }
 
     function addPerson() {
+        const nextIndex = highestPersonIndex + 1;
+
         setPersonCards([...personCards, {
             groupKey: uuidv4(),
             name: "",
             itemPrices: [],
+            index: nextIndex
         }]);
     }
 
@@ -84,10 +131,13 @@ export function MainFlow(): VNode {
     }
 
     function addSharedItems() {
+        const nextIndex = highestSharedItemsIndex + 1;
+
         setSharedItemsCards([...sharedItemsCards, {
             groupKey: uuidv4(),
             personKeys: personCards.map((personCard) => personCard.groupKey),
             itemPrices: [],
+            index: nextIndex,
         }]);
     }
 
@@ -118,12 +168,16 @@ export function MainFlow(): VNode {
     
 
     return <>
-        {personCards.map((personCard) => <PersonCard
+        {personCards.sort((a, b) => a.index - b.index).map((personCard) => <PersonCard
             name={personCard.name}
             setName={(newName) => setPersonName(personCard.groupKey, newName)}
             itemPrices={personCard.itemPrices}
             setItemPrices={(newItemPrices) => setPersonItemPrices(personCard.groupKey, newItemPrices)}
             removeGroup={() => removePerson(personCard.groupKey)}
+            canMoveUp={personCard.index > lowestPersonIndex}
+            canMoveDown={personCard.index < highestPersonIndex}
+            moveUp={() => moveCard("people", personCard.groupKey, "up")}
+            moveDown={() => moveCard("people", personCard.groupKey, "down")}
         />)}
         <Button
             variant="contained"
@@ -138,6 +192,10 @@ export function MainFlow(): VNode {
             allPeople={allPeople}
             selectedPersonKeys={sharedItemsCard.personKeys}
             setSelectedPersonKeys={(newKeys) => setSharedItemsSelectedPersonKeys(sharedItemsCard.groupKey, newKeys)}
+            canMoveUp={sharedItemsCard.index > lowestSharedItemsIndex}
+            canMoveDown={sharedItemsCard.index < highestSharedItemsIndex}
+            moveUp={() => moveCard("shared", sharedItemsCard.groupKey, "up")}
+            moveDown={() => moveCard("shared", sharedItemsCard.groupKey, "down")}
         />)}
         <Button variant="contained" style={addButtonStyle} startIcon={<GroupAdd />} onClick={addSharedItems}>Add Shared Items</Button>
         <Typography variant="h5">Subtotal</Typography>
@@ -154,10 +212,8 @@ export function MainFlow(): VNode {
             helperText={postTaxErrorMessage}
             onKeyDown = {(event) => {
                 if (event.key === "Enter") {
-                    console.log("post-tax enter");
                     var textFieldDiv = postTaxTextFieldRef.current!;
                     var input = textFieldDiv.querySelectorAll("input")[0];
-                    console.log(input);
                     input.blur();
             }}}
         />

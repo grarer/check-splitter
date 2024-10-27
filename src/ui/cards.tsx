@@ -2,13 +2,17 @@ import { Card, CardContent, Typography, CardActions, Button, TextField, InputAdo
 import { VNode } from "preact";
 import { cardStyle } from "./style";
 import { PriceListing, PricesInput } from "./pricesInput";
-import { Delete, Face, Face2, Face3, Person, Person2 } from "@mui/icons-material";
+import { Delete, Face, Face2, Face3, KeyboardArrowDown, KeyboardArrowUp, Person, Person2 } from "@mui/icons-material";
 import { zeroMoney } from "../model/split";
 
 export type CommonCardProps = {
     itemPrices: PriceListing[],
     setItemPrices: (newItemPrices: PriceListing[]) => void,
     removeGroup: () => void,
+    canMoveUp: boolean,
+    canMoveDown: boolean,
+    moveUp: () => void,
+    moveDown: () => void,
 }
 
 export function CommonCard(props: CommonCardProps & { children: VNode }) {
@@ -22,13 +26,22 @@ export function CommonCard(props: CommonCardProps & { children: VNode }) {
         <CardActions disableSpacing style={{ paddingTop: 0 }}>
             <Button disabled>{priceSum}</Button>
             <span style={{ flexGrow: 1 }} />
+            <IconButton onClick={props.moveUp} disabled={!props.canMoveUp}><KeyboardArrowUp /></IconButton>
+            <IconButton onClick={props.moveDown} disabled={!props.canMoveDown}><KeyboardArrowDown /></IconButton>
             <IconButton onClick={props.removeGroup}><Delete /></IconButton>
         </CardActions>
     </Card>
 }
 
 export function PersonCard(props: CommonCardProps & { name: string, setName: (newName: string) => void }): VNode {
-    return <CommonCard itemPrices={props.itemPrices} setItemPrices={props.setItemPrices} removeGroup={props.removeGroup}>
+    return <CommonCard
+        itemPrices={props.itemPrices}
+        setItemPrices={props.setItemPrices}
+        canMoveUp = {props.canMoveUp}
+        canMoveDown = {props.canMoveDown}
+        moveUp = {props.moveUp}
+        moveDown = {props.moveDown}
+        removeGroup={props.removeGroup}>
         <TextField
             style={{ width: "100%", marginBottom: "10px" }}
             label="Name"
@@ -54,9 +67,6 @@ export function SharedGroupCard(props: CommonCardProps & {
         setSelectedPersonKeys: (newKeys: string[]) => void
     }): VNode {
 
-    console.log("rendering SharedGroupCard");
-    console.log(props.allPeople);
-
     function togglePersonSelection(key: string) {
         if (props.selectedPersonKeys.includes(key)) {
             props.setSelectedPersonKeys(props.selectedPersonKeys.filter((selectedKey) => selectedKey !== key));
@@ -65,7 +75,15 @@ export function SharedGroupCard(props: CommonCardProps & {
         }
     }
 
-    return <CommonCard itemPrices={props.itemPrices} setItemPrices={props.setItemPrices} removeGroup={props.removeGroup}>
+    return <CommonCard
+        itemPrices={props.itemPrices}
+        setItemPrices={props.setItemPrices}
+        removeGroup={props.removeGroup}
+        canMoveUp={props.canMoveUp}
+        canMoveDown={props.canMoveDown}
+        moveUp={props.moveUp}
+        moveDown={props.moveDown}
+        >
         <>
             <FormGroup>
                 {props.allPeople.map((person) =>
