@@ -2,7 +2,7 @@ import { PersonAddAlt1, GroupAdd } from "@mui/icons-material";
 import { Button, Card, CardActions, CardContent, Paper, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Typography } from "@mui/material";
 import { Dinero } from "dinero.js";
 import { VNode } from "preact";
-import { CSSProperties, useState } from "preact/compat";
+import { CSSProperties, useRef, useState } from "preact/compat";
 import { v4 as uuidv4 } from "uuid";
 import { addButtonStyle, cardStyle } from "./style";
 import { PersonCard, SharedGroupCard } from "./cards";
@@ -39,6 +39,8 @@ export function MainFlow(): VNode {
     const [sharedItemsCards, setSharedItemsCards] = useState<sharedItemsCardState[]>([]);
     const [postTaxTotalInputValue, setPostTaxTotalInputValue] = useState<string >("");
     const [selectedTipPercentage, setSelectedTipPercentage] = useState(0.0);
+
+    const postTaxTextFieldRef = useRef<HTMLDivElement>(null);
 
     const subTotalFromItemGroups = personCards.map(c => c.itemPrices).concat(sharedItemsCards.map(c => c.itemPrices)).flat().map(p => p.price).reduce((a, b) => a.add(b), zeroMoney);
 
@@ -116,6 +118,8 @@ export function MainFlow(): VNode {
         setSharedItemsCards(sharedItemsCards.filter((sharedItemsCard) => sharedItemsCard.groupKey !== groupKey));
     }
 
+    
+
     return <>
         {personCards.map((personCard) => <PersonCard
             name={personCard.name}
@@ -142,6 +146,7 @@ export function MainFlow(): VNode {
         <Typography variant="h5">Subtotal</Typography>
         <Typography variant="h4" style={{ marginBottom: "15px" }}>{formatMoney(subTotalFromItemGroups)}</Typography>
         <TextField
+            ref={postTaxTextFieldRef}
             label="Post-tax Total"
             variant="filled"
             style={{ width: "100%" }}
@@ -150,6 +155,14 @@ export function MainFlow(): VNode {
             onChange={event => setPostTaxTotalInputValue((event.target as HTMLInputElement).value)}
             error={postTaxErrorMessage !== undefined}
             helperText={postTaxErrorMessage}
+            onKeyDown = {(event) => {
+                if (event.key === "Enter") {
+                    console.log("post-tax enter");
+                    var textFieldDiv = postTaxTextFieldRef.current!;
+                    var input = textFieldDiv.querySelectorAll("input")[0];
+                    console.log(input);
+                    input.blur();
+            }}}
         />
         <TipSelection
             selectedTipPercentage={selectedTipPercentage}
