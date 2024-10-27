@@ -22,7 +22,6 @@ const darkTheme = createTheme({
 
 
 export function App() {
-	// TODO setting page to set user name
 	const [showSettings, setShowSettings] = useState(false);
 
 	return (

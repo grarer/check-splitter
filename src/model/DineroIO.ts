@@ -16,7 +16,7 @@ export function safeValidateMoneyInput(inputString: string | undefined): Dinero.
     
         var number = parseFloat(inputString);
     
-        const currency = "USD"; // TODO support other currencies?
+        const currency = "USD";
         const currencyPrecision = 2;
     
         var decimalIndex = inputString.indexOf(".");

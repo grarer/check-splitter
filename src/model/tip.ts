@@ -1,6 +1,5 @@
 import Dinero from "dinero.js";
 
-// TODO support other currencies
 const currency = "USD";
 const currencyPrecision = 2;
 

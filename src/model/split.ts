@@ -11,17 +11,8 @@ type Contribution = {
 }
 
 
-export var zeroMoney = Dinero({ amount: 0, currency: "USD", precision: 2 }); // TODO allow customizing currency and precision
+export var zeroMoney = Dinero({ amount: 0, currency: "USD", precision: 2 });
 
-function sumItemGroupSubtotal(itemGroups: ItemGroup[]): Dinero.Dinero {
-    var total = zeroMoney;
-    for (var group of itemGroups) {
-        for (var price of group.prices) {
-            total = total.add(price);
-        }
-    }
-    return total;
-}
 
 // get per-person totals from item groups. costs of shared item groups are split evenly among owners
 // these totals are floating-point, which is fine since it will be rounded to nearest cent when distributing
