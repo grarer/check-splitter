@@ -48,8 +48,6 @@ export function MainFlow(): VNode {
     const postTaxErrorMessage = typeof postTaxTotalMoneyResult === "string" && postTaxTotalInputValue != "" ? postTaxTotalMoneyResult : undefined;
     const postTaxTotalMoney = typeof postTaxTotalMoneyResult === "string" ? undefined : postTaxTotalMoneyResult;
 
-    const CanShowResults = postTaxTotalMoney != undefined && subTotalFromItemGroups.getAmount() != 0;
-
     function setPersonName(key: string, newName: string) {
         setPersonCards(personCards.map((personCard) => {
             if (personCard.groupKey === key) {
@@ -158,7 +156,6 @@ export function MainFlow(): VNode {
             setSelectedTipPercentage={setSelectedTipPercentage}
         />
         <ResultsDisplay
-            canShowResults={CanShowResults}
             allNames={allPeople.map((person) => person.name)}
             tipPercentage={selectedTipPercentage}
             preTaxSubtotal={subTotalFromItemGroups}

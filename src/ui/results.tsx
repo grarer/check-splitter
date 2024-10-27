@@ -5,17 +5,26 @@ import { ComputeTip } from "../model/tip";
 import { Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography } from "@mui/material";
 import { formatMoney } from "../model/DineroIO";
 
+function Hint(text: string): VNode {
+    return <Typography variant="body1" style={{marginTop: "20px", opacity: "50%"}}>{text}</Typography>
+}
+
 export function ResultsDisplay(props: {
-    canShowResults: boolean,
     allNames: string[]
     itemGroups: ItemGroup[],
     preTaxSubtotal: Dinero.Dinero,
-    postTaxPreTipTotal: Dinero.Dinero,
+    postTaxPreTipTotal: Dinero.Dinero | undefined,
     tipPercentage: number,
 }): VNode {
-    if(!props.canShowResults) {
-        return <></>;
+
+    if(props.postTaxPreTipTotal === undefined) {
+        return Hint("Enter post-tax total to see results");
     }
+
+    if (props.preTaxSubtotal.isZero()) {
+        return Hint("Enter item prices to see results");
+    }
+
 
     const tipResult = ComputeTip(props.preTaxSubtotal, props.postTaxPreTipTotal, props.tipPercentage);
 
