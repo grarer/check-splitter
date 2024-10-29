@@ -39,6 +39,7 @@ function combineShares( itemGroups: ItemGroup[],): Map<string, number> {
     return individualShares;
 }
 
+// TODO this does not work correctly if we have duplicate names, need to use keys
 export function distributeCosts(costToSplit: Dinero.Dinero, people: string[], itemGroups: ItemGroup[]): Contribution[] {
     var individualShares = combineShares(itemGroups);
     var ratios = people.map(person => individualShares.get(person) ?? 0);

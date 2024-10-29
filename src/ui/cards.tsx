@@ -75,6 +75,7 @@ export function SharedGroupCard(props: CommonCardProps & {
         }
     }
 
+    // TODO checkboxes should have keys
     return <CommonCard
         itemPrices={props.itemPrices}
         setItemPrices={props.setItemPrices}
