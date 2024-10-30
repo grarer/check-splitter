@@ -40,6 +40,7 @@ export function SettingsDialog(props: {open: boolean, onClose: () => void}): VNo
     </AppBar>
     <Stack direction="column" style={{padding: "20px", marginTop: "10px"}}>
         <TextField
+            style={{ maxWidth: "6in", margin: "auto" }}
             label="Your Name"
             value={name}
             onChange={(event) => setName((event.target as HTMLInputElement).value)}
