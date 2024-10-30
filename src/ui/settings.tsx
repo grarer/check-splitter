@@ -1,4 +1,4 @@
-import { Dialog, AppBar, Toolbar, IconButton, Typography, Button, List, ListItemButton, ListItemText, Divider, TextField, Stack } from "@mui/material";
+import { Dialog, AppBar, Toolbar, IconButton, Typography, Button, List, ListItemButton, ListItemText, Divider, TextField, Stack, Link } from "@mui/material";
 import { VNode } from "preact";
 import CloseIcon from '@mui/icons-material/Close';
 import { useState } from "preact/hooks";
@@ -14,7 +14,6 @@ export function SettingsDialog(props: {open: boolean, onClose: () => void}): VNo
         props.onClose();
     }
 
-    // TODO transition animation
     return <Dialog
     fullScreen
     open={props.open}
@@ -45,6 +44,7 @@ export function SettingsDialog(props: {open: boolean, onClose: () => void}): VNo
             value={name}
             onChange={(event) => setName((event.target as HTMLInputElement).value)}
         />
+        <Link variant="body2" style={{margin:"auto", marginTop: "20px"}} href={"https://github.com/grarer/check-splitter"}>Made by Grace Rarer</Link>
     </Stack>
   </Dialog>
 };
