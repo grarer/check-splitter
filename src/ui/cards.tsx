@@ -88,16 +88,15 @@ export function SharedGroupCard(props: CommonCardProps & {
         <>
             <FormGroup>
                 {props.allPeople.map((person) =>
-                    <>
-                        <FormControlLabel
-                        label={person.name || "(no name)"}
-                        control={
-                            <Checkbox
-                                checked={props.selectedPersonKeys.includes(person.key)}
-                                onChange={() => togglePersonSelection(person.key)}
-                                />
-                        }  />
-                    </>
+                    <FormControlLabel
+                    label={person.name || "(no name)"}
+                    key = {person.key}
+                    control={
+                        <Checkbox
+                            checked={props.selectedPersonKeys.includes(person.key)}
+                            onChange={() => togglePersonSelection(person.key)}
+                            />
+                    }  />
                 )}
 
             </FormGroup>

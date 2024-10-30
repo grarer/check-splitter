@@ -51,7 +51,8 @@ export function MainFlow(): VNode {
 
     const subTotalFromItemGroups = personCards.map(c => c.itemPrices).concat(sharedItemsCards.map(c => c.itemPrices)).flat().map(p => p.price).reduce((a, b) => a.add(b), zeroMoney);
 
-    const allPeople = personCards.map((personCard) => ({ name: personCard.name, key: personCard.groupKey }));
+    const personCardsOrdered = personCards.map(x=>x).sort((a, b) => a.index - b.index);
+    const allPeople = personCardsOrdered.map((personCard) => ({ name: personCard.name, key: personCard.groupKey }));
 
     const postTaxTotalMoneyResult = safeValidateMoneyInput(postTaxTotalInputValue);
     const postTaxErrorMessage = typeof postTaxTotalMoneyResult === "string" && postTaxTotalInputValue != "" ? postTaxTotalMoneyResult : undefined;
@@ -164,7 +165,7 @@ export function MainFlow(): VNode {
     }
 
     return <>
-        {personCards.sort((a, b) => a.index - b.index).map((personCard) => <PersonCard
+        {personCardsOrdered.map((personCard) => <PersonCard
             name={personCard.name}
             setName={(newName) => setPersonName(personCard.groupKey, newName)}
             itemPrices={personCard.itemPrices}
