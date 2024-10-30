@@ -1,7 +1,5 @@
-import { hydrate, prerender as ssr } from 'preact-iso';
-
 import './style.css';
-import { Fragment, VNode } from 'preact';
+import { Fragment, hydrate, render, VNode } from 'preact';
 
 import '@fontsource/roboto/300.css';
 import '@fontsource/roboto/400.css';
@@ -49,10 +47,4 @@ export function App() {
 	);
 }
 
-if (typeof window !== 'undefined') {
-	hydrate(<App />, document.getElementById('app')!);
-}
-
-export async function prerender(data: VNode) {
-	return await ssr(<App {...data} />);
-}
+render(<App />, document.getElementById('app')!);

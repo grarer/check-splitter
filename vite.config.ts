@@ -6,9 +6,9 @@ export default defineConfig({
 	plugins: [
 		preact({
 			prerender: {
-				enabled: true,
-				renderTarget: '#app',
+				enabled: false,				
 			},
 		}),
 	],
+	base: '/check-splitter/',
 });
