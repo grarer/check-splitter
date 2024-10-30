@@ -1,0 +1,1 @@
+if('serviceWorker' in navigator) {window.addEventListener('load', () => {navigator.serviceWorker.register('/check-splitter/sw.js', { scope: '/check-splitter/' })})}
