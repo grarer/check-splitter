@@ -21,19 +21,22 @@ function combineShares( itemGroups: ItemGroup[],): Map<string, number> {
     var individualShares = new Map<string, number>();
 
     for (var group of itemGroups) {
-        if (group.ownerKeys.length == 0) {
-            throw new Error("Item group must have at least one owner");
+        if (group.ownerKeys.length > 0) {
+            var groupTotalPrice = zeroMoney;
+            for (var price of group.prices) {
+                groupTotalPrice = groupTotalPrice.add(price);
+            }
+            
+            var individualShare = groupTotalPrice.getAmount() / group.ownerKeys.length;
+            for (var owner of group.ownerKeys) {
+                var currentShare = individualShares.get(owner) ?? 0;
+                individualShares.set(owner, currentShare + individualShare);
+            }
         }
-
-        var groupTotalPrice = zeroMoney;
-        for (var price of group.prices) {
-            groupTotalPrice = groupTotalPrice.add(price);
-        }
-        
-        var individualShare = groupTotalPrice.getAmount() / group.ownerKeys.length;
-        for (var owner of group.ownerKeys) {
-            var currentShare = individualShares.get(owner) ?? 0;
-            individualShares.set(owner, currentShare + individualShare);
+        else
+        {
+            // no owners for this group, so it doesn't contribute to a person's share
+            // but it will still be included in the subtotal for tip purposes, so this is a valid case
         }
     }
 
