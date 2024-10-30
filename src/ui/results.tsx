@@ -13,7 +13,7 @@ function ContributionTable(props: {contributions: {person: string, amount: Diner
 }
 
 export function ResultsDisplay(props: {
-    allNames: string[]
+    allPeople: {name: string, key: string}[]
     itemGroups: ItemGroup[],
     preTaxSubtotal: Dinero.Dinero,
     postTaxPreTipTotal: Dinero.Dinero | undefined,
@@ -32,7 +32,7 @@ export function ResultsDisplay(props: {
 
     const contributions = distributeCosts(
         tipResult.totalAmount,
-        props.allNames,
+        props.allPeople,
         props.itemGroups
     );
 
@@ -50,8 +50,8 @@ export function ResultsDisplay(props: {
                     </TableRow>
                 </TableHead>
                 <TableBody>
-                    {contributions.map((contribution) => <TableRow key={contribution.person}>
-                        <TableCell>{contribution.person || "(no name)"}</TableCell>
+                    {contributions.map((contribution) => <TableRow key={contribution.personKey}>
+                        <TableCell>{contribution.personName || "(no name)"}</TableCell>
                         <TableCell>{contribution.amount.toFormat()}</TableCell>
                     </TableRow>)}
                 </TableBody>

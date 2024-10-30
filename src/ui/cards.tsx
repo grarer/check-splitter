@@ -90,7 +90,7 @@ export function SharedGroupCard(props: CommonCardProps & {
                 {props.allPeople.map((person) =>
                     <>
                         <FormControlLabel
-                        label={person.name}
+                        label={person.name || "(no name)"}
                         control={
                             <Checkbox
                                 checked={props.selectedPersonKeys.includes(person.key)}

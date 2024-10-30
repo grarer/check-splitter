@@ -1,12 +1,13 @@
 import Dinero from "dinero.js";
 
 export type ItemGroup = {
-    owners: string[],
+    ownerKeys: string[],
     prices: Dinero.Dinero[]
 }
 
 type Contribution = {
-    person: string,
+    personName: string,
+    personKey: string,
     amount: Dinero.Dinero
 }
 
@@ -20,7 +21,7 @@ function combineShares( itemGroups: ItemGroup[],): Map<string, number> {
     var individualShares = new Map<string, number>();
 
     for (var group of itemGroups) {
-        if (group.owners.length == 0) {
+        if (group.ownerKeys.length == 0) {
             throw new Error("Item group must have at least one owner");
         }
 
@@ -29,8 +30,8 @@ function combineShares( itemGroups: ItemGroup[],): Map<string, number> {
             groupTotalPrice = groupTotalPrice.add(price);
         }
         
-        var individualShare = groupTotalPrice.getAmount() / group.owners.length;
-        for (var owner of group.owners) {
+        var individualShare = groupTotalPrice.getAmount() / group.ownerKeys.length;
+        for (var owner of group.ownerKeys) {
             var currentShare = individualShares.get(owner) ?? 0;
             individualShares.set(owner, currentShare + individualShare);
         }
@@ -39,10 +40,9 @@ function combineShares( itemGroups: ItemGroup[],): Map<string, number> {
     return individualShares;
 }
 
-// TODO this does not work correctly if we have duplicate names, need to use keys
-export function distributeCosts(costToSplit: Dinero.Dinero, people: string[], itemGroups: ItemGroup[]): Contribution[] {
+export function distributeCosts(costToSplit: Dinero.Dinero, people: {name: string, key: string}[], itemGroups: ItemGroup[]): Contribution[] {
     var individualShares = combineShares(itemGroups);
-    var ratios = people.map(person => individualShares.get(person) ?? 0);
+    var ratios = people.map(person => individualShares.get(person.key) ?? 0);
     var allocations = costToSplit.allocate(ratios);
-    return people.map((person, i) => ({person: person, amount: allocations[i]}));
+    return people.map((person, i) => ({personName: person.name, personKey: person.key, amount: allocations[i]}));
 }

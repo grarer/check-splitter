@@ -163,8 +163,6 @@ export function MainFlow(): VNode {
         setSharedItemsCards(sharedItemsCards.filter((sharedItemsCard) => sharedItemsCard.groupKey !== groupKey));
     }
 
-    
-
     return <>
         {personCards.sort((a, b) => a.index - b.index).map((personCard) => <PersonCard
             name={personCard.name}
@@ -220,17 +218,17 @@ export function MainFlow(): VNode {
             setSelectedTipPercentage={setSelectedTipPercentage}
         />
         <ResultsDisplay
-            allNames={allPeople.map((person) => person.name)}
+            allPeople={allPeople}
             tipPercentage={selectedTipPercentage}
             preTaxSubtotal={subTotalFromItemGroups}
             postTaxPreTipTotal={postTaxTotalMoney!}
             itemGroups={
                 personCards.map((personCard) => ({
-                    owners: [personCard.name],
+                    ownerKeys: [personCard.groupKey],
                     prices: personCard.itemPrices.map((priceListing) => priceListing.price),
                 }))
                 .concat(sharedItemsCards.map((sharedItemsCard) => ({
-                    owners: allPeople.filter((person) => sharedItemsCard.personKeys.includes(person.key)).map((person) => person.name),
+                    ownerKeys: allPeople.map(p => p.key).filter((key) => sharedItemsCard.personKeys.includes(key)),
                     prices: sharedItemsCard.itemPrices.map((priceListing) => priceListing.price),
                 })))
             }
