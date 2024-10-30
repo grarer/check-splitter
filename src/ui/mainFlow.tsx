@@ -54,6 +54,8 @@ export function MainFlow(): VNode {
     const personCardsOrdered = personCards.map(x=>x).sort((a, b) => a.index - b.index);
     const allPeople = personCardsOrdered.map((personCard) => ({ name: personCard.name, key: personCard.groupKey }));
 
+    const sharedItemCardsOrdered = sharedItemsCards.map(x=>x).sort((a, b) => a.index - b.index);
+
     const postTaxTotalMoneyResult = safeValidateMoneyInput(postTaxTotalInputValue);
     const postTaxErrorMessage = typeof postTaxTotalMoneyResult === "string" && postTaxTotalInputValue != "" ? postTaxTotalMoneyResult : undefined;
     const postTaxTotalMoney = typeof postTaxTotalMoneyResult === "string" ? undefined : postTaxTotalMoneyResult;
@@ -111,7 +113,8 @@ export function MainFlow(): VNode {
     }
 
     function addPerson() {
-        const nextIndex = highestPersonIndex + 1;
+        // if we have no cards, the "highest index" is -Infinity so we start at 0 instead
+        const nextIndex = Math.max(highestPersonIndex + 1, 0); 
 
         setPersonCards([...personCards, {
             groupKey: uuidv4(),
@@ -130,7 +133,8 @@ export function MainFlow(): VNode {
     }
 
     function addSharedItems() {
-        const nextIndex = highestSharedItemsIndex + 1;
+        // if we have no cards, the "highest index" is -Infinity so we start at 0 instead
+        const nextIndex = Math.max(highestSharedItemsIndex + 1, 0);
 
         setSharedItemsCards([...sharedItemsCards, {
             groupKey: uuidv4(),
@@ -182,7 +186,7 @@ export function MainFlow(): VNode {
             startIcon={<PersonAddAlt1 />}
             onClick={addPerson}
         >Add Person</Button>
-        {sharedItemsCards.map((sharedItemsCard) => <SharedGroupCard
+        {sharedItemCardsOrdered.map((sharedItemsCard) => <SharedGroupCard
             itemPrices={sharedItemsCard.itemPrices}
             setItemPrices={(newItemPrices) => setSharedItemsPrices(sharedItemsCard.groupKey, newItemPrices)}
             removeGroup={() => removeSharedItems(sharedItemsCard.groupKey)}
